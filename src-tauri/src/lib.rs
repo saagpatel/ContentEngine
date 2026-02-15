@@ -3,6 +3,7 @@ use tauri::Manager;
 mod commands;
 mod db;
 mod errors;
+mod logging;
 mod models;
 mod services;
 
@@ -15,9 +16,17 @@ pub fn run() {
         .plugin(tauri_plugin_opener::init())
         .plugin(tauri_plugin_clipboard_manager::init())
         .setup(|app| {
-            // Initialize DB
+            // Initialize app directory
             let app_dir = app.path().app_data_dir()?;
             std::fs::create_dir_all(&app_dir)?;
+
+            // Initialize logging
+            logging::init_logging(&app_dir)
+                .map_err(|e| Box::new(std::io::Error::new(std::io::ErrorKind::Other, e.to_string())))?;
+
+            tracing::info!(version = env!("CARGO_PKG_VERSION"), "ContentEngine starting");
+
+            // Initialize DB
             let db_path = app_dir.join("contentengine.db");
 
             let conn = rusqlite::Connection::open(&db_path)
