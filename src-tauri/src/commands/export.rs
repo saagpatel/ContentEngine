@@ -6,7 +6,7 @@ use crate::errors::AppError;
 use crate::services::markdown_export::MarkdownExporter;
 
 #[tauri::command]
-pub async fn export_pdf(app: AppHandle, content_input_id: String) -> Result<String, AppError> {
+pub async fn export_markdown(app: AppHandle, content_input_id: String) -> Result<String, AppError> {
     let detail = get_history_detail(app.clone(), content_input_id.clone()).await?;
 
     if detail.outputs.is_empty() {
