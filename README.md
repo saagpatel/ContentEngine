@@ -36,12 +36,6 @@ ContentEngine transforms your written content into **6 platform-specific formats
 - Email Sequence (3-part)
 - Summary
 
-## Tech Stack
-
-- Desktop shell: Tauri (v2)
-- Frontend: React + React Router + Zustand + Vite + Tailwind CSS
-- Backend: Rust + SQLite (rusqlite) + reqwest (URL fetch + Claude API) + printpdf (PDF export)
-
 ## Installation
 
 ### End Users
@@ -51,11 +45,13 @@ Download the latest release for your platform:
 - **Windows**: `ContentEngine-windows-x64.msi`
 - **Linux**: `ContentEngine-linux-x64.AppImage`
 
-See [INSTALLATION.md](INSTALLATION.md) for detailed setup instructions.
+Use the releases page for installation assets and platform-specific install instructions.
 
 ### Developers
 
-See [CONTRIBUTING.md](CONTRIBUTING.md) for development setup.
+1. Install prerequisites: Node.js 20+, pnpm 8+, Rust 1.70+, and Tauri dependencies.
+2. Install dependencies: `pnpm install`
+3. Start dev app: `pnpm tauri:dev`
 
 ## Usage
 
@@ -144,7 +140,11 @@ pnpm tauri:build
 # Output: src-tauri/target/release/
 ```
 
-See [CONTRIBUTING.md](CONTRIBUTING.md) for contribution guidelines.
+## Contributing
+
+- Open an issue with a clear problem statement and reproduction details.
+- Keep pull requests focused and include validation steps.
+- For code changes, run `pnpm type-check`, `pnpm test`, and `pnpm build` before submitting.
 
 ## Roadmap
 
@@ -160,7 +160,6 @@ MIT License - see [LICENSE](LICENSE) for details.
 
 ## Support
 
-- 📖 [Documentation](./docs/)
 - 🐛 [Report Bug](https://github.com/YOUR_USERNAME/ContentEngine/issues)
 - 💡 [Request Feature](https://github.com/YOUR_USERNAME/ContentEngine/issues)
 

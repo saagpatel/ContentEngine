@@ -91,7 +91,7 @@ describe('TwitterThread', () => {
       expect(screen.getByText('{ this is not valid json }')).toBeInTheDocument();
     });
 
-    it('renders non-array JSON as single tweet', () => {
+    it('renders tweets object payload', () => {
       const objectJson = JSON.stringify({ tweets: ['test'] }); // Object, not array
       const output = createMockOutput(objectJson);
 

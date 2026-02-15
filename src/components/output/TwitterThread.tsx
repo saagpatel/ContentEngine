@@ -18,23 +18,15 @@ export function TwitterThread({ output }: TwitterThreadProps) {
       const tweetData = parsed as { tweets: unknown[] };
       if (Array.isArray(tweetData.tweets)) {
         tweets = tweetData.tweets
-          .map((tweet) => {
-            if (typeof tweet === 'string') {
-              return tweet;
+          .map((t) => {
+            if (typeof t === 'string') return t;
+            if (t && typeof t === 'object' && 'text' in t) {
+              const maybeText = (t as { text?: unknown }).text;
+              return typeof maybeText === 'string' ? maybeText : undefined;
             }
-
-            if (
-              tweet &&
-              typeof tweet === 'object' &&
-              'text' in tweet &&
-              typeof tweet.text === 'string'
-            ) {
-              return tweet.text;
-            }
-
-            return null;
+            return undefined;
           })
-          .filter((tweet): tweet is string => typeof tweet === 'string');
+          .filter((t): t is string => typeof t === 'string');
       }
     }
   } catch {

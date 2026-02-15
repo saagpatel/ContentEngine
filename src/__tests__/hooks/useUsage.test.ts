@@ -16,7 +16,6 @@ describe('useUsage', () => {
       const mockUsage = mockTauriResponses.usageInfo({
         used: 30,
         limit: 50,
-        resets_at: '2025-02-01T00:00:00Z',
       });
 
       vi.mocked(api.getUsageInfo).mockResolvedValue(mockUsage);
@@ -49,7 +48,24 @@ describe('useUsage', () => {
       expect(result.current.usage?.limit).toBe(50);
     });
 
-    it('handles usage over limit', async () => {
+    it('handles usage at limit', async () => {
+      const mockUsage = mockTauriResponses.usageInfo({
+        used: 50,
+        limit: 50,
+      });
+
+      vi.mocked(api.getUsageInfo).mockResolvedValue(mockUsage);
+
+      const { result } = renderHook(() => useUsage());
+
+      await waitFor(() => {
+        expect(result.current.usage?.used).toBe(50);
+      });
+
+      expect(result.current.usage?.limit).toBe(50);
+    });
+
+    it('handles usage exceeded', async () => {
       const mockUsage = mockTauriResponses.usageInfo({
         used: 55,
         limit: 50,
@@ -60,10 +76,11 @@ describe('useUsage', () => {
       const { result } = renderHook(() => useUsage());
 
       await waitFor(() => {
-        expect(result.current.usage?.used).toBe(55);
+        expect(result.current.usage).toBeDefined();
       });
 
-      expect(result.current.usage?.limit).toBe(50);
+      expect(result.current.usage?.used).toBe(55);
+      expect((result.current.usage?.used ?? 0) > (result.current.usage?.limit ?? 0)).toBe(true);
     });
 
     it('handles API errors', async () => {
@@ -150,7 +167,9 @@ describe('useUsage', () => {
     it('sets isLoading during fetch', async () => {
       vi.mocked(api.getUsageInfo).mockImplementation(
         () =>
-          new Promise((resolve) => setTimeout(() => resolve(mockTauriResponses.usageInfo()), 100))
+          new Promise((resolve) =>
+            setTimeout(() => resolve(mockTauriResponses.usageInfo()), 100)
+          )
       );
 
       const { result } = renderHook(() => useUsage());

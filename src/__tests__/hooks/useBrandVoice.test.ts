@@ -114,7 +114,9 @@ describe('useBrandVoice', () => {
 
     it('handles analysis errors', async () => {
       vi.mocked(api.getBrandVoices).mockResolvedValue([]);
-      vi.mocked(api.analyzeBrandVoice).mockRejectedValue(new Error('Invalid samples'));
+      vi.mocked(api.analyzeBrandVoice).mockRejectedValue(
+        new Error('Invalid samples')
+      );
 
       const { result } = renderHook(() => useBrandVoice());
 
@@ -192,7 +194,9 @@ describe('useBrandVoice', () => {
     });
 
     it('handles delete errors', async () => {
-      vi.mocked(api.getBrandVoices).mockResolvedValue([mockTauriResponses.brandVoiceProfile()]);
+      vi.mocked(api.getBrandVoices).mockResolvedValue([
+        mockTauriResponses.brandVoiceProfile(),
+      ]);
       vi.mocked(api.deleteBrandVoice).mockRejectedValue(new Error('Cannot delete'));
 
       const { result } = renderHook(() => useBrandVoice());
@@ -216,7 +220,9 @@ describe('useBrandVoice', () => {
 
   describe('setDefaultVoice', () => {
     it('sets voice as default', async () => {
-      vi.mocked(api.getBrandVoices).mockResolvedValue([mockTauriResponses.brandVoiceProfile()]);
+      vi.mocked(api.getBrandVoices).mockResolvedValue([
+        mockTauriResponses.brandVoiceProfile(),
+      ]);
       vi.mocked(api.setDefaultVoice).mockResolvedValue();
 
       const { result } = renderHook(() => useBrandVoice());
@@ -298,7 +304,7 @@ describe('useBrandVoice', () => {
           sentence_style: 'concise',
           personality_traits: ['analytical'],
           signature_phrases: ['therefore', 'thus'],
-          avoid_phrases: ['literally'],
+          avoid_phrases: ['kind of'],
         },
       });
 

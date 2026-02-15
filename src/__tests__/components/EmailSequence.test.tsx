@@ -26,7 +26,7 @@ const validEmailSequence: EmailSequenceData = {
       label: 'Deep Dive',
       subject_line: 'Going deeper into the topic',
       preview_text: 'Advanced strategies revealed',
-      body: "Now that you know the basics, let's explore advanced concepts.",
+      body: 'Now that you know the basics, let\'s explore advanced concepts.',
       cta_text: 'Continue Learning',
     },
     {
@@ -34,7 +34,7 @@ const validEmailSequence: EmailSequenceData = {
       label: 'Taking Action',
       subject_line: 'Put it into practice',
       preview_text: 'Your action plan',
-      body: "Here's how to apply everything you've learned.",
+      body: 'Here\'s how to apply everything you\'ve learned.',
       cta_text: 'Get Started',
     },
   ],
@@ -63,9 +63,7 @@ describe('EmailSequence', () => {
       // First email's content should be visible
       expect(screen.getByText('Welcome to our content series')).toBeInTheDocument();
       expect(screen.getByText('Learn the fundamentals')).toBeInTheDocument();
-      expect(
-        screen.getByText('Welcome! Here is the first email with valuable content.')
-      ).toBeInTheDocument();
+      expect(screen.getByText('Welcome! Here is the first email with valuable content.')).toBeInTheDocument();
     });
 
     it('expands and collapses emails on click', () => {
@@ -86,9 +84,7 @@ describe('EmailSequence', () => {
 
       // Second email content should be visible
       expect(screen.getByText('Going deeper into the topic')).toBeInTheDocument();
-      expect(
-        screen.getByText("Now that you know the basics, let's explore advanced concepts.")
-      ).toBeInTheDocument();
+      expect(screen.getByText('Now that you know the basics, let\'s explore advanced concepts.')).toBeInTheDocument();
     });
 
     it('displays all email sections when expanded', () => {
@@ -141,8 +137,9 @@ describe('EmailSequence', () => {
 
       render(<EmailSequence output={output} />);
 
-      // Falls back to plaintext mode with a single Copy button
-      expect(screen.getByText('Copy')).toBeInTheDocument();
+      // Empty sequence falls back to plaintext output rendering.
+      expect(screen.getByText('{"emails":[]}')).toBeInTheDocument();
+      expect(screen.queryByText('Copy All')).not.toBeInTheDocument();
     });
 
     it('handles long email bodies with newlines', () => {
@@ -199,6 +196,8 @@ describe('EmailSequence', () => {
 
     it('renders copy button for plaintext fallback', () => {
       const output = createMockOutput('Fallback text');
+
+      render(<EmailSequence output={output} />);
 
       // Should have at least one copy button
       const { container } = render(<EmailSequence output={output} />);
