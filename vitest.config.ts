@@ -7,5 +7,23 @@ export default defineConfig({
     environment: 'jsdom',
     globals: true,
     setupFiles: ['./src/test-setup.ts'],
+    coverage: {
+      provider: 'v8',
+      reporter: ['text', 'html', 'json'],
+      exclude: [
+        'node_modules/',
+        'src/test-setup.ts',
+        'src/__tests__/**',
+        '**/*.test.{ts,tsx}',
+        '**/*.d.ts',
+        'src-tauri/**',
+      ],
+      thresholds: {
+        lines: 70,
+        functions: 65,
+        branches: 60,
+        statements: 70,
+      },
+    },
   },
 });

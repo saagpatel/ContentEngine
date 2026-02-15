@@ -10,9 +10,41 @@ export function EmailSequence({ output }: EmailSequenceProps) {
   const [expandedIndex, setExpandedIndex] = useState<number | null>(0);
 
   let data: EmailSequenceData | null = null;
+
+  // Strategy 1: Try parsing as JSON
   try {
-    data = JSON.parse(output.output_text) as EmailSequenceData;
+    const parsed = JSON.parse(output.output_text);
+    if (parsed && typeof parsed === 'object' && 'emails' in parsed) {
+      data = parsed as EmailSequenceData;
+    }
   } catch {
+    // Strategy 2: Try parsing text markers (PART 1:, PART 2:, etc.)
+    const parts = output.output_text.split(/PART\s+(\d+):/i);
+    if (parts.length >= 3) {
+      // We have at least PART 1 and PART 2
+      data = {
+        emails: [],
+      };
+      for (let i = 1; i < parts.length; i += 2) {
+        const partNum = parseInt(parts[i], 10);
+        const content = parts[i + 1]?.trim() || '';
+        const lines = content.split('\n');
+        const subject = lines[0] || `Email ${partNum}`;
+
+        data.emails.push({
+          email_number: partNum,
+          label: `Email ${partNum}`,
+          subject_line: subject.replace(/^Subject:\s*/i, ''),
+          preview_text: lines[1] || '',
+          body: lines.slice(2).join('\n').trim(),
+          cta_text: 'Read More',
+        });
+      }
+    }
+  }
+
+  // Fallback: Show plaintext if parsing failed
+  if (!data || !data.emails || data.emails.length === 0) {
     return (
       <div className="rounded-lg border border-border bg-surface p-4">
         <p className="whitespace-pre-wrap text-sm text-text">{output.output_text}</p>

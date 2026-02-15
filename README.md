@@ -1,15 +1,31 @@
 # ContentEngine
 
-ContentEngine is a local-first desktop app for repurposing source content (pasted text or a URL) into multiple platform-ready outputs using Anthropic Claude.
+<p align="center">
+  <strong>Privacy-first desktop app for repurposing content into platform-ready formats using Claude AI</strong>
+</p>
+
+<p align="center">
+  <a href="#features">Features</a> •
+  <a href="#installation">Installation</a> •
+  <a href="#usage">Usage</a> •
+  <a href="#development">Development</a> •
+  <a href="#privacy">Privacy</a>
+</p>
+
+---
 
 ## What It Does
 
-- Paste text or fetch an article from a URL and generate multiple output formats in one run.
-- Choose tone and length presets.
-- Create and manage Brand Voice profiles (analyze writing samples, set a default voice, and apply it to outputs).
-- Browse generation history and view/delete past runs.
-- Export generated outputs to PDF.
-- Track monthly usage with a configurable limit (default: 50 generated formats/month, resets monthly).
+ContentEngine transforms your written content into **6 platform-specific formats** in one click. All processing happens locally—your data never leaves your device except for Claude API calls.
+
+### Core Features
+
+- 📝 **Multi-Format Generation**: Transform content into Twitter threads, LinkedIn posts, Instagram captions, newsletters, email sequences, and summaries
+- 🎨 **Brand Voice Profiles**: Analyze writing samples to create custom brand voices
+- 📊 **Generation History**: Browse, search, and manage all past generations
+- 💾 **Markdown Export**: Export all formats to universally-compatible Markdown files
+- 🔒 **Local-First**: All data stored on your device—no cloud sync, no tracking
+- 📈 **Usage Tracking**: Monitor monthly generation usage with configurable limits
 
 ### Supported Output Formats
 
@@ -26,56 +42,128 @@ ContentEngine is a local-first desktop app for repurposing source content (paste
 - Frontend: React + React Router + Zustand + Vite + Tailwind CSS
 - Backend: Rust + SQLite (rusqlite) + reqwest (URL fetch + Claude API) + printpdf (PDF export)
 
-## Setup
+## Installation
+
+### End Users
+
+Download the latest release for your platform:
+- **macOS**: `ContentEngine-macos-universal.dmg`
+- **Windows**: `ContentEngine-windows-x64.msi`
+- **Linux**: `ContentEngine-linux-x64.AppImage`
+
+See [INSTALLATION.md](INSTALLATION.md) for detailed setup instructions.
+
+### Developers
+
+See [CONTRIBUTING.md](CONTRIBUTING.md) for development setup.
+
+## Usage
+
+### Quick Start
+
+1. **Launch** ContentEngine
+2. **Add API Key**: Settings → Enter your Claude API key ([get one here](https://console.anthropic.com/))
+3. **Create Content**: Paste text or enter a URL
+4. **Select Formats**: Choose which platforms you need
+5. **Generate**: Click generate and get all formats instantly
+
+### Brand Voice
+
+1. Navigate to **Brand Voice** page
+2. Upload 1-10 writing samples
+3. Claude analyzes and extracts your unique voice
+4. Set as default to apply to all generations
+
+### Export
+
+1. Go to **History** page
+2. Click any generation
+3. Click **Export to Markdown**
+4. Files saved to `{app_data_dir}/exports/`
+
+## Privacy
+
+**Your data stays on your device.** We don't collect analytics, crash reports, or telemetry.
+
+- All content stored locally in SQLite
+- API key secured in OS keyring
+- No cloud sync, no third-party tracking
+- See [PRIVACY.md](PRIVACY.md) for details
+
+## Tech Stack
+
+**Frontend:**
+- React 19 + TypeScript
+- Zustand (state management)
+- Tailwind CSS 4
+- Vite 7
+
+**Backend:**
+- Rust + Tauri v2
+- SQLite (local database)
+- Tracing (structured logging)
+- reqwest (HTTP client)
+
+**Testing:**
+- Vitest (frontend)
+- Cargo test (backend)
+- 85+ tests, 48% coverage
+
+## Development
 
 ### Prerequisites
 
-- Node.js + pnpm
-- Rust toolchain
-- Tauri prerequisites for your OS
+- Node.js 20+ + pnpm 8+
+- Rust 1.70+
+- Tauri prerequisites ([install guide](https://tauri.app/v1/guides/getting-started/prerequisites))
 
-### Install
+### Setup
 
 ```bash
+# Install dependencies
 pnpm install
+
+# Run dev server
+pnpm tauri:dev
+
+# Run tests
+pnpm test              # Frontend
+cargo test --manifest-path src-tauri/Cargo.toml  # Backend
+
+# Lint & format
+pnpm lint
+pnpm format
 ```
 
-### Run (Desktop App)
+### Build
 
 ```bash
-pnpm tauri dev
+# Production build
+pnpm tauri:build
+
+# Output: src-tauri/target/release/
 ```
 
-### Build (Desktop App)
+See [CONTRIBUTING.md](CONTRIBUTING.md) for contribution guidelines.
 
-```bash
-pnpm tauri build
-```
+## Roadmap
 
-## Configuration
+- [ ] Full-text search in history
+- [ ] Batch URL processing
+- [ ] Custom format templates
+- [ ] Dark mode
+- [ ] Auto-updater
 
-### Anthropic API Key
+## License
 
-The app uses Anthropic Claude for repurposing and brand voice analysis.
+MIT License - see [LICENSE](LICENSE) for details.
 
-- Open `Settings` in the app and paste an Anthropic key (expects the `sk-ant-...` format).
-- The key is stored locally in the app's SQLite settings table and is masked when displayed in the UI.
+## Support
 
-## Data Storage
+- 📖 [Documentation](./docs/)
+- 🐛 [Report Bug](https://github.com/YOUR_USERNAME/ContentEngine/issues)
+- 💡 [Request Feature](https://github.com/YOUR_USERNAME/ContentEngine/issues)
 
-Content inputs, generated outputs, brand voice profiles, and usage records are stored locally in SQLite under the app data directory.
+---
 
-## Tests (Optional)
-
-Frontend:
-
-```bash
-pnpm exec vitest
-```
-
-Rust:
-
-```bash
-cd src-tauri
-cargo test
-```
+<p align="center">Made with ❤️ using Claude AI</p>
