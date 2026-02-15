@@ -21,8 +21,7 @@ pub fn run() {
             std::fs::create_dir_all(&app_dir)?;
 
             // Initialize logging
-            logging::init_logging(&app_dir)
-                .map_err(|e| Box::new(std::io::Error::new(std::io::ErrorKind::Other, e.to_string())))?;
+            logging::init_logging(&app_dir)?;
 
             tracing::info!(version = env!("CARGO_PKG_VERSION"), "ContentEngine starting");
 
