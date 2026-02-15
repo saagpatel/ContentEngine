@@ -20,7 +20,7 @@ export function EmailSequence({ output }: EmailSequenceProps) {
   } catch {
     // Strategy 2: Try parsing text markers (PART 1:, PART 2:, etc.)
     const parts = output.output_text.split(/PART\s+(\d+):/i);
-    if (parts.length >= 4) {
+    if (parts.length >= 3) {
       // We have at least PART 1 and PART 2
       data = {
         emails: [],
