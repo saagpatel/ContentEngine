@@ -3,7 +3,7 @@ use tauri::Manager;
 
 use crate::commands::history::get_history_detail;
 use crate::errors::AppError;
-use crate::services::pdf_export;
+use crate::services::markdown_export::MarkdownExporter;
 
 #[tauri::command]
 pub async fn export_pdf(app: AppHandle, content_input_id: String) -> Result<String, AppError> {
@@ -19,22 +19,13 @@ pub async fn export_pdf(app: AppHandle, content_input_id: String) -> Result<Stri
     let app_dir = app
         .path()
         .app_data_dir()
-        .map_err(|e| AppError::PdfExport(format!("Failed to get app data dir: {}", e)))?;
+        .map_err(|e| AppError::ExportError(format!("Failed to get app data dir: {}", e)))?;
     let exports_dir = app_dir.join("exports");
     std::fs::create_dir_all(&exports_dir)
-        .map_err(|e| AppError::PdfExport(format!("Failed to create exports dir: {}", e)))?;
+        .map_err(|e| AppError::ExportError(format!("Failed to create exports dir: {}", e)))?;
 
-    let filename = format!(
-        "export_{}_{}.pdf",
-        &content_input_id[..8],
-        chrono::Utc::now().format("%Y%m%d_%H%M%S")
-    );
-    let output_path = exports_dir.join(&filename);
-    let output_path_str = output_path
-        .to_str()
-        .ok_or_else(|| AppError::PdfExport("Invalid path encoding".to_string()))?;
+    // Export to markdown
+    let export_data = MarkdownExporter::export(&detail.input, &detail.outputs, &exports_dir)?;
 
-    pdf_export::export_to_pdf(&detail.input, &detail.outputs, output_path_str)?;
-
-    Ok(output_path_str.to_string())
+    Ok(export_data.file_path)
 }
