@@ -7,12 +7,34 @@ interface TwitterThreadProps {
 
 export function TwitterThread({ output }: TwitterThreadProps) {
   let tweets: string[] = [];
+
+  // Strategy 1: Try parsing as JSON array
   try {
     const parsed: unknown = JSON.parse(output.output_text);
     if (Array.isArray(parsed)) {
       tweets = parsed.filter((item): item is string => typeof item === 'string');
+    } else if (parsed && typeof parsed === 'object' && 'tweets' in parsed) {
+      // Handle {tweets: [...]} structure
+      const tweetData = parsed as { tweets: any[] };
+      if (Array.isArray(tweetData.tweets)) {
+        tweets = tweetData.tweets
+          .map((t) => (typeof t === 'string' ? t : t?.text))
+          .filter((t): t is string => typeof t === 'string');
+      }
     }
   } catch {
+    // Strategy 2: Try parsing numbered markers (1/, 2/, etc.)
+    const tweetMatches = output.output_text.match(/^\d+\/\s+(.+?)(?=^\d+\/|\n\n|$)/gms);
+    if (tweetMatches && tweetMatches.length > 0) {
+      tweets = tweetMatches.map((t) => t.replace(/^\d+\/\s+/, '').trim());
+    } else {
+      // Strategy 3: Fallback to plaintext
+      tweets = [output.output_text];
+    }
+  }
+
+  // If still empty, use plaintext
+  if (tweets.length === 0) {
     tweets = [output.output_text];
   }
 
