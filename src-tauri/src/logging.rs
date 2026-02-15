@@ -14,7 +14,8 @@ pub fn init_logging(app_data_dir: &Path) -> Result<(), Box<dyn std::error::Error
 
     // Create daily rotating file appender
     let file_appender = tracing_appender::rolling::daily(&log_dir, "contentengine.log");
-    let (non_blocking, _guard) = tracing_appender::non_blocking(file_appender);
+    let (non_blocking, guard) = tracing_appender::non_blocking(file_appender);
+    std::mem::forget(guard);
 
     // Build subscriber with both stdout and file output
     tracing_subscriber::registry()
