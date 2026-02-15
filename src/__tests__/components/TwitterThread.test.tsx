@@ -6,7 +6,7 @@ import type { RepurposedOutput } from '../../types/content';
 const createMockOutput = (outputText: string): RepurposedOutput => ({
   id: 'output-123',
   content_input_id: 'content-123',
-  format: 'twitter',
+  format: 'twitter_thread',
   output_text: outputText,
   created_at: '2025-01-15T10:00:00Z',
 });
@@ -53,7 +53,7 @@ describe('TwitterThread', () => {
       const tweets = ['A'.repeat(300)]; // Over limit
       const output = createMockOutput(JSON.stringify(tweets));
 
-      const { container } = render(<TwitterThread output={output} />);
+      render(<TwitterThread output={output} />);
 
       const charCount = screen.getByText('300/280');
       expect(charCount).toHaveClass('text-danger');
@@ -64,7 +64,8 @@ describe('TwitterThread', () => {
 
       render(<TwitterThread output={output} />);
 
-      expect(screen.getByText('0 tweets')).toBeInTheDocument();
+      expect(screen.getByText('1 tweet')).toBeInTheDocument();
+      expect(screen.getByText('[]')).toBeInTheDocument();
     });
 
     it('filters out non-string items from array', () => {
@@ -96,9 +97,8 @@ describe('TwitterThread', () => {
 
       render(<TwitterThread output={output} />);
 
-      // Component filters non-string items, so object results in empty array -> "0 tweets"
-      // This is correct behavior - the object itself isn't a string
-      expect(screen.getByText('0 tweets')).toBeInTheDocument();
+      expect(screen.getByText('1 tweet')).toBeInTheDocument();
+      expect(screen.getByText('test')).toBeInTheDocument();
     });
 
     it('renders plain text without JSON structure', () => {

@@ -9,7 +9,7 @@ export function ToneSelector() {
 
   return (
     <div>
-      <label className="mb-2 block text-sm font-medium text-text">Tone</label>
+      <p className="mb-2 block text-sm font-medium text-text">Tone</p>
       <div className="space-y-2">
         {tones.map((t) => {
           const meta = TONE_META[t];

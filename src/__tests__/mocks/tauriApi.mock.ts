@@ -1,11 +1,17 @@
+import { invoke } from '@tauri-apps/api/core';
 import { vi } from 'vitest';
-import type { ContentInput, RepurposeResponse, HistoryPage } from '../../types/content';
+import type {
+  ContentInput,
+  RepurposeResponse,
+  HistoryPage,
+  RepurposedOutput,
+} from '../../types/content';
 import type { BrandVoiceProfile } from '../../types/brandVoice';
 import type { UsageInfo } from '../../types/usage';
 
 /**
  * Mock factory for Tauri API responses
- * Use these helpers to create consistent test data
+ * Use these helpers to create consistent test data.
  */
 export const mockTauriResponses = {
   contentInput: (overrides?: Partial<ContentInput>): ContentInput => ({
@@ -18,25 +24,27 @@ export const mockTauriResponses = {
     ...overrides,
   }),
 
+  repurposedOutput: (overrides?: Partial<RepurposedOutput>): RepurposedOutput => ({
+    id: 'output-1',
+    content_input_id: 'test-content-123',
+    format: 'twitter_thread',
+    output_text: JSON.stringify({
+      tweets: [{ text: 'Tweet 1 content' }, { text: 'Tweet 2 content' }],
+    }),
+    created_at: '2025-01-15T10:05:00Z',
+    ...overrides,
+  }),
+
   repurposeResponse: (overrides?: Partial<RepurposeResponse>): RepurposeResponse => ({
-    generation_id: 'gen-123',
+    content_input_id: 'test-content-123',
     outputs: [
-      {
-        format: 'twitter',
-        output_text: JSON.stringify({
-          tweets: [
-            { text: 'Tweet 1 content' },
-            { text: 'Tweet 2 content' },
-          ],
-        }),
-      },
-      {
+      mockTauriResponses.repurposedOutput(),
+      mockTauriResponses.repurposedOutput({
+        id: 'output-2',
         format: 'linkedin',
         output_text: 'LinkedIn post content',
-      },
+      }),
     ],
-    generated_at: '2025-01-15T10:05:00Z',
-    tokens_used: 1200,
     ...overrides,
   }),
 
@@ -60,7 +68,6 @@ export const mockTauriResponses = {
     total: 10,
     page: 0,
     page_size: 10,
-    has_more: false,
     ...overrides,
   }),
 
@@ -69,25 +76,23 @@ export const mockTauriResponses = {
     name: 'Professional Voice',
     description: 'Corporate professional tone',
     style_attributes: {
-      tone: 'professional, authoritative',
-      vocabulary: 'business-focused, technical',
-      sentence_structure: 'clear and concise',
-      key_phrases: ['leverage', 'optimize', 'synergy'],
-      emoji_usage: 'low',
+      tone: 'professional',
+      vocabulary_level: 'technical',
+      sentence_style: 'clear and concise',
+      personality_traits: ['authoritative', 'helpful'],
+      signature_phrases: ['leverage', 'optimize'],
+      avoid_phrases: ['ASAP', 'totally'],
     },
     is_default: false,
-    sample_count: 3,
     created_at: '2025-01-10T10:00:00Z',
     updated_at: '2025-01-10T10:00:00Z',
     ...overrides,
   }),
 
   usageInfo: (overrides?: Partial<UsageInfo>): UsageInfo => ({
-    formats_used_this_month: 25,
-    monthly_limit: 50,
-    percent_used: 50,
+    used: 25,
+    limit: 50,
     resets_at: '2025-02-01T00:00:00Z',
-    is_exceeded: false,
     ...overrides,
   }),
 };
@@ -95,9 +100,6 @@ export const mockTauriResponses = {
 /**
  * Mock Tauri invoke function with specific responses
  * Usage in tests:
- *   vi.mocked(invoke).mockResolvedValue(mockTauriResponses.contentInput())
+ *   setupTauriMock().mockResolvedValue(mockTauriResponses.contentInput())
  */
-export const setupTauriMock = () => {
-  const { invoke } = require('@tauri-apps/api/core');
-  return vi.mocked(invoke);
-};
+export const setupTauriMock = () => vi.mocked(invoke);

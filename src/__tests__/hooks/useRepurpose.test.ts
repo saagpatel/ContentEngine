@@ -16,7 +16,7 @@ describe('useRepurpose', () => {
       title: '',
       sourceUrl: '',
       useUrl: false,
-      selectedFormats: new Set(['twitter']),
+      selectedFormats: ['twitter_thread'],
       tone: 'professional',
       length: 'medium',
       selectedBrandVoiceId: null,
@@ -34,7 +34,7 @@ describe('useRepurpose', () => {
 
       useAppStore.setState({
         rawContent: 'Test content for repurposing. '.repeat(20),
-        selectedFormats: new Set(['twitter', 'linkedin']),
+        selectedFormats: ['twitter_thread', 'linkedin'],
         tone: 'casual',
         length: 'short',
       });
@@ -55,7 +55,7 @@ describe('useRepurpose', () => {
       expect(api.repurposeContent).toHaveBeenCalledWith(
         expect.objectContaining({
           content: expect.stringContaining('Test content'),
-          formats: expect.any(Set),
+          formats: expect.any(Array),
           tone: 'casual',
           length: 'short',
         })
@@ -120,9 +120,7 @@ describe('useRepurpose', () => {
         generationError: 'Previous error',
       });
 
-      vi.mocked(api.repurposeContent).mockResolvedValue(
-        mockTauriResponses.repurposeResponse()
-      );
+      vi.mocked(api.repurposeContent).mockResolvedValue(mockTauriResponses.repurposeResponse());
 
       const { result } = renderHook(() => useRepurpose());
 
@@ -144,14 +142,12 @@ describe('useRepurpose', () => {
         word_count: 100,
       };
       vi.mocked(api.fetchUrl).mockResolvedValue(mockFetched);
-      vi.mocked(api.repurposeContent).mockResolvedValue(
-        mockTauriResponses.repurposeResponse()
-      );
+      vi.mocked(api.repurposeContent).mockResolvedValue(mockTauriResponses.repurposeResponse());
 
       useAppStore.setState({
         useUrl: true,
         sourceUrl: 'https://example.com/article',
-        selectedFormats: new Set(['twitter']),
+        selectedFormats: ['twitter_thread'],
       });
 
       const { result } = renderHook(() => useRepurpose());
@@ -200,9 +196,7 @@ describe('useRepurpose', () => {
         text: 'Content',
         word_count: 50,
       });
-      vi.mocked(api.repurposeContent).mockResolvedValue(
-        mockTauriResponses.repurposeResponse()
-      );
+      vi.mocked(api.repurposeContent).mockResolvedValue(mockTauriResponses.repurposeResponse());
 
       useAppStore.setState({
         useUrl: true,
@@ -228,9 +222,7 @@ describe('useRepurpose', () => {
 
   describe('with brand voice', () => {
     it('includes brand voice ID in request', async () => {
-      vi.mocked(api.repurposeContent).mockResolvedValue(
-        mockTauriResponses.repurposeResponse()
-      );
+      vi.mocked(api.repurposeContent).mockResolvedValue(mockTauriResponses.repurposeResponse());
 
       useAppStore.setState({
         rawContent: 'Content',
@@ -253,9 +245,7 @@ describe('useRepurpose', () => {
     });
 
     it('omits voice_id if null', async () => {
-      vi.mocked(api.repurposeContent).mockResolvedValue(
-        mockTauriResponses.repurposeResponse()
-      );
+      vi.mocked(api.repurposeContent).mockResolvedValue(mockTauriResponses.repurposeResponse());
 
       useAppStore.setState({
         rawContent: 'Content',
@@ -280,12 +270,10 @@ describe('useRepurpose', () => {
 
   describe('platform config', () => {
     it('includes platform config if provided', async () => {
-      vi.mocked(api.repurposeContent).mockResolvedValue(
-        mockTauriResponses.repurposeResponse()
-      );
+      vi.mocked(api.repurposeContent).mockResolvedValue(mockTauriResponses.repurposeResponse());
 
       const config = {
-        twitter: { tweet_count: 5 },
+        tweet_count: 5,
       };
 
       useAppStore.setState({
@@ -309,9 +297,7 @@ describe('useRepurpose', () => {
     });
 
     it('omits config if empty', async () => {
-      vi.mocked(api.repurposeContent).mockResolvedValue(
-        mockTauriResponses.repurposeResponse()
-      );
+      vi.mocked(api.repurposeContent).mockResolvedValue(mockTauriResponses.repurposeResponse());
 
       useAppStore.setState({
         rawContent: 'Content',
@@ -339,12 +325,18 @@ describe('useRepurpose', () => {
       const mockResponse = mockTauriResponses.repurposeResponse({
         outputs: [
           {
-            format: 'twitter',
+            id: 'output-twitter',
+            content_input_id: 'test-content-123',
+            format: 'twitter_thread',
             output_text: 'Tweet content',
+            created_at: '2025-01-15T10:05:00Z',
           },
           {
+            id: 'output-linkedin',
+            content_input_id: 'test-content-123',
             format: 'linkedin',
             output_text: 'LinkedIn post',
+            created_at: '2025-01-15T10:05:00Z',
           },
         ],
       });
@@ -374,16 +366,14 @@ describe('useRepurpose', () => {
           {
             id: 'old-1',
             content_input_id: 'old',
-            format: 'twitter',
+            format: 'twitter_thread',
             output_text: 'Old output',
             created_at: '2025-01-01T00:00:00Z',
           },
         ],
       });
 
-      vi.mocked(api.repurposeContent).mockResolvedValue(
-        mockTauriResponses.repurposeResponse()
-      );
+      vi.mocked(api.repurposeContent).mockResolvedValue(mockTauriResponses.repurposeResponse());
 
       const { result } = renderHook(() => useRepurpose());
 

@@ -11,9 +11,7 @@ export function ShortSummary({ output }: ShortSummaryProps) {
   return (
     <div className="space-y-3">
       <div className="flex items-center justify-between">
-        <span className="text-xs font-medium text-text-secondary">
-          {text.length} chars
-        </span>
+        <span className="text-xs font-medium text-text-secondary">{text.length} chars</span>
         <CopyButton text={text} />
       </div>
       <div className="rounded-lg border border-border bg-surface p-4">

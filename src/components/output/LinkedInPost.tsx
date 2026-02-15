@@ -14,7 +14,9 @@ export function LinkedInPost({ output }: LinkedInPostProps) {
   return (
     <div className="space-y-3">
       <div className="flex items-center justify-between">
-        <span className={`text-xs font-medium ${charCount > 3000 ? 'text-danger' : 'text-success'}`}>
+        <span
+          className={`text-xs font-medium ${charCount > 3000 ? 'text-danger' : 'text-success'}`}
+        >
           {charCount}/3000
         </span>
         <CopyButton text={text} />

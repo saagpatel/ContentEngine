@@ -19,7 +19,11 @@ export const PLATFORM_LIMITS = {
   twitter_thread: { chars_per_tweet: 280, min_tweets: 3, max_tweets: 15, default_tweets: 10 },
   linkedin: { max_chars: 3000, see_more_cutoff: 140, optimal_length: 1300, max_hashtags: 5 },
   instagram: { max_chars: 2200, preview_chars: 125, max_hashtags: 5 },
-  newsletter: { subject_max_chars: 50, preview_text_chars: 80, body_word_count: { short: 100, medium: 200, long: 400 } },
+  newsletter: {
+    subject_max_chars: 50,
+    preview_text_chars: 80,
+    body_word_count: { short: 100, medium: 200, long: 400 },
+  },
   email_sequence: {
     email_count: 3,
     email1_words: { short: 50, medium: 75, long: 100 },

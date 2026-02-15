@@ -89,9 +89,7 @@ describe('useHistory', () => {
         page: 1,
       });
 
-      vi.mocked(api.getHistory)
-        .mockResolvedValueOnce(page1)
-        .mockResolvedValueOnce(page2);
+      vi.mocked(api.getHistory).mockResolvedValueOnce(page1).mockResolvedValueOnce(page2);
 
       const { result } = renderHook(() => useHistory(10));
 
@@ -225,9 +223,7 @@ describe('useHistory', () => {
     it('sets isLoading during fetch', async () => {
       vi.mocked(api.getHistory).mockImplementation(
         () =>
-          new Promise((resolve) =>
-            setTimeout(() => resolve(mockTauriResponses.historyPage()), 100)
-          )
+          new Promise((resolve) => setTimeout(() => resolve(mockTauriResponses.historyPage()), 100))
       );
 
       const { result } = renderHook(() => useHistory());

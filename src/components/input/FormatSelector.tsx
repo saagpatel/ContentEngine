@@ -9,7 +9,7 @@ export function FormatSelector() {
 
   return (
     <div>
-      <label className="mb-2 block text-sm font-medium text-text">Output Formats</label>
+      <p className="mb-2 block text-sm font-medium text-text">Output Formats</p>
       <div className="grid grid-cols-2 gap-2">
         {formats.map((format) => {
           const meta = FORMAT_META[format];

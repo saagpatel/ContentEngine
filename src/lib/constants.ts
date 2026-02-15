@@ -1,6 +1,9 @@
 import type { OutputFormat, TonePreset, LengthPreset } from '../types/platform';
 
-export const FORMAT_META: Record<OutputFormat, { label: string; icon: string; description: string }> = {
+export const FORMAT_META: Record<
+  OutputFormat,
+  { label: string; icon: string; description: string }
+> = {
   twitter_thread: { label: 'Twitter/X Thread', icon: '🐦', description: 'Multi-tweet thread' },
   linkedin: { label: 'LinkedIn Post', icon: '💼', description: 'Professional post' },
   instagram: { label: 'Instagram Caption', icon: '📸', description: 'Caption with hashtags' },

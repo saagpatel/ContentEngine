@@ -14,9 +14,9 @@ describe('useUsage', () => {
   describe('loadUsage', () => {
     it('loads usage info on mount', async () => {
       const mockUsage = mockTauriResponses.usageInfo({
-        formats_used_this_month: 30,
-        monthly_limit: 50,
-        percent_used: 60,
+        used: 30,
+        limit: 50,
+        resets_at: '2025-02-01T00:00:00Z',
       });
 
       vi.mocked(api.getUsageInfo).mockResolvedValue(mockUsage);
@@ -27,17 +27,15 @@ describe('useUsage', () => {
         expect(result.current.usage).toBeDefined();
       });
 
-      expect(result.current.usage?.formats_used_this_month).toBe(30);
-      expect(result.current.usage?.monthly_limit).toBe(50);
-      expect(result.current.usage?.percent_used).toBe(60);
+      expect(result.current.usage?.used).toBe(30);
+      expect(result.current.usage?.limit).toBe(50);
+      expect(result.current.usage?.resets_at).toBe('2025-02-01T00:00:00Z');
     });
 
     it('handles usage at zero', async () => {
       const mockUsage = mockTauriResponses.usageInfo({
-        formats_used_this_month: 0,
-        monthly_limit: 50,
-        percent_used: 0,
-        is_exceeded: false,
+        used: 0,
+        limit: 50,
       });
 
       vi.mocked(api.getUsageInfo).mockResolvedValue(mockUsage);
@@ -45,19 +43,16 @@ describe('useUsage', () => {
       const { result } = renderHook(() => useUsage());
 
       await waitFor(() => {
-        expect(result.current.usage?.formats_used_this_month).toBe(0);
+        expect(result.current.usage?.used).toBe(0);
       });
 
-      expect(result.current.usage?.percent_used).toBe(0);
-      expect(result.current.usage?.is_exceeded).toBe(false);
+      expect(result.current.usage?.limit).toBe(50);
     });
 
-    it('handles usage at limit', async () => {
+    it('handles usage over limit', async () => {
       const mockUsage = mockTauriResponses.usageInfo({
-        formats_used_this_month: 50,
-        monthly_limit: 50,
-        percent_used: 100,
-        is_exceeded: false,
+        used: 55,
+        limit: 50,
       });
 
       vi.mocked(api.getUsageInfo).mockResolvedValue(mockUsage);
@@ -65,29 +60,10 @@ describe('useUsage', () => {
       const { result } = renderHook(() => useUsage());
 
       await waitFor(() => {
-        expect(result.current.usage?.formats_used_this_month).toBe(50);
+        expect(result.current.usage?.used).toBe(55);
       });
 
-      expect(result.current.usage?.percent_used).toBe(100);
-    });
-
-    it('handles usage exceeded', async () => {
-      const mockUsage = mockTauriResponses.usageInfo({
-        formats_used_this_month: 55,
-        monthly_limit: 50,
-        percent_used: 110,
-        is_exceeded: true,
-      });
-
-      vi.mocked(api.getUsageInfo).mockResolvedValue(mockUsage);
-
-      const { result } = renderHook(() => useUsage());
-
-      await waitFor(() => {
-        expect(result.current.usage?.is_exceeded).toBe(true);
-      });
-
-      expect(result.current.usage?.formats_used_this_month).toBe(55);
+      expect(result.current.usage?.limit).toBe(50);
     });
 
     it('handles API errors', async () => {
@@ -99,7 +75,6 @@ describe('useUsage', () => {
         expect(result.current.error).toBe('Database error');
       });
 
-      // Usage might have previous value from store, error is the key indicator
       expect(result.current.isLoading).toBe(false);
     });
   });
@@ -109,10 +84,10 @@ describe('useUsage', () => {
       vi.useFakeTimers();
 
       const initialUsage = mockTauriResponses.usageInfo({
-        formats_used_this_month: 10,
+        used: 10,
       });
       const updatedUsage = mockTauriResponses.usageInfo({
-        formats_used_this_month: 15,
+        used: 15,
       });
 
       vi.mocked(api.getUsageInfo)
@@ -121,18 +96,16 @@ describe('useUsage', () => {
 
       const { result } = renderHook(() => useUsage());
 
-      // Run all pending timers (initial load)
       await vi.runOnlyPendingTimersAsync();
 
       await waitFor(() => {
-        expect(result.current.usage?.formats_used_this_month).toBe(10);
+        expect(result.current.usage?.used).toBe(10);
       });
 
-      // Fast-forward 30 seconds
       await vi.advanceTimersByTimeAsync(30000);
 
       await waitFor(() => {
-        expect(result.current.usage?.formats_used_this_month).toBe(15);
+        expect(result.current.usage?.used).toBe(15);
       });
 
       expect(api.getUsageInfo).toHaveBeenCalledTimes(2);
@@ -142,7 +115,7 @@ describe('useUsage', () => {
 
     it('cleans up interval on unmount', () => {
       vi.useFakeTimers();
-      const clearIntervalSpy = vi.spyOn(global, 'clearInterval');
+      const clearIntervalSpy = vi.spyOn(globalThis, 'clearInterval');
 
       vi.mocked(api.getUsageInfo).mockResolvedValue(mockTauriResponses.usageInfo());
 
@@ -177,9 +150,7 @@ describe('useUsage', () => {
     it('sets isLoading during fetch', async () => {
       vi.mocked(api.getUsageInfo).mockImplementation(
         () =>
-          new Promise((resolve) =>
-            setTimeout(() => resolve(mockTauriResponses.usageInfo()), 100)
-          )
+          new Promise((resolve) => setTimeout(() => resolve(mockTauriResponses.usageInfo()), 100))
       );
 
       const { result } = renderHook(() => useUsage());
@@ -210,11 +181,9 @@ describe('useUsage', () => {
   describe('data integrity', () => {
     it('preserves all usage info fields', async () => {
       const mockUsage = mockTauriResponses.usageInfo({
-        formats_used_this_month: 42,
-        monthly_limit: 50,
-        percent_used: 84,
+        used: 42,
+        limit: 50,
         resets_at: '2025-02-01T00:00:00Z',
-        is_exceeded: false,
       });
 
       vi.mocked(api.getUsageInfo).mockResolvedValue(mockUsage);
@@ -226,11 +195,9 @@ describe('useUsage', () => {
       });
 
       expect(result.current.usage).toEqual({
-        formats_used_this_month: 42,
-        monthly_limit: 50,
-        percent_used: 84,
+        used: 42,
+        limit: 50,
         resets_at: '2025-02-01T00:00:00Z',
-        is_exceeded: false,
       });
     });
   });

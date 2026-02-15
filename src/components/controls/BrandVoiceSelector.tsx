@@ -6,6 +6,7 @@ import { useBrandVoice } from '../../hooks/useBrandVoice';
 export function BrandVoiceSelector() {
   const { selectedBrandVoiceId, setSelectedBrandVoiceId } = useAppStore();
   const { voices, isLoading } = useBrandVoice();
+  const brandVoiceSelectId = 'brand-voice-select';
 
   useEffect(() => {
     if (!selectedBrandVoiceId && voices.length > 0) {
@@ -18,8 +19,11 @@ export function BrandVoiceSelector() {
 
   return (
     <div>
-      <label className="mb-2 block text-sm font-medium text-text">Brand Voice</label>
+      <label htmlFor={brandVoiceSelectId} className="mb-2 block text-sm font-medium text-text">
+        Brand Voice
+      </label>
       <select
+        id={brandVoiceSelectId}
         value={selectedBrandVoiceId ?? ''}
         onChange={(e) => setSelectedBrandVoiceId(e.target.value || null)}
         disabled={isLoading}

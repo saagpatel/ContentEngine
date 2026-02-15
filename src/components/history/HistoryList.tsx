@@ -47,20 +47,13 @@ export function HistoryList() {
             key={item.id}
             className="flex items-center justify-between rounded-lg border border-border bg-surface p-4 transition-colors hover:bg-surface-alt"
           >
-            <button
-              onClick={() => navigate(`/history/${item.id}`)}
-              className="flex-1 text-left"
-            >
+            <button onClick={() => navigate(`/history/${item.id}`)} className="flex-1 text-left">
               <div className="flex items-center gap-3">
                 <div>
-                  <p className="font-medium text-text">
-                    {item.title ?? 'Untitled Content'}
-                  </p>
+                  <p className="font-medium text-text">{item.title ?? 'Untitled Content'}</p>
                   <div className="mt-1 flex items-center gap-3 text-xs text-text-secondary">
                     <span>{item.word_count} words</span>
-                    <span>
-                      {new Date(item.created_at).toLocaleDateString()}
-                    </span>
+                    <span>{new Date(item.created_at).toLocaleDateString()}</span>
                   </div>
                 </div>
               </div>

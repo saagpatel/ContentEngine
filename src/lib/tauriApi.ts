@@ -1,5 +1,12 @@
 import { invoke } from '@tauri-apps/api/core';
-import type { ContentInput, FetchedContent, RepurposeRequest, RepurposeResponse, HistoryPage, HistoryDetail } from '../types/content';
+import type {
+  ContentInput,
+  FetchedContent,
+  RepurposeRequest,
+  RepurposeResponse,
+  HistoryPage,
+  HistoryDetail,
+} from '../types/content';
 import type { BrandVoiceProfile } from '../types/brandVoice';
 import type { UsageInfo } from '../types/usage';
 
@@ -13,8 +20,7 @@ export const api = {
   saveContent: (params: { text: string; source_url?: string; title?: string }) =>
     invoke<ContentInput>('save_content', params),
 
-  fetchUrl: (url: string) =>
-    invoke<FetchedContent>('fetch_url', { url }),
+  fetchUrl: (url: string) => invoke<FetchedContent>('fetch_url', { url }),
 
   repurposeContent: (request: RepurposeRequest) =>
     invoke<RepurposeResponse>('repurpose_content', { request }),
@@ -31,11 +37,9 @@ export const api = {
   getHistory: (page?: number, pageSize?: number) =>
     invoke<HistoryPage>('get_history', { page, page_size: pageSize }),
 
-  getHistoryDetail: (id: string) =>
-    invoke<HistoryDetail>('get_history_detail', { id }),
+  getHistoryDetail: (id: string) => invoke<HistoryDetail>('get_history_detail', { id }),
 
-  deleteHistoryItem: (id: string) =>
-    invoke<void>('delete_history_item', { id }),
+  deleteHistoryItem: (id: string) => invoke<void>('delete_history_item', { id }),
 
   exportPdf: (contentInputId: string) =>
     invoke<string>('export_pdf', { content_input_id: contentInputId }),

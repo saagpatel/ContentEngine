@@ -10,8 +10,13 @@ import { OutputPanel } from '../components/output/OutputPanel';
 import { ErrorDisplay } from '../components/common/ErrorDisplay';
 
 export function NewContentPage() {
-  const { outputs, activeOutputFormat, setActiveOutputFormat, generationError, setGenerationError } =
-    useAppStore();
+  const {
+    outputs,
+    activeOutputFormat,
+    setActiveOutputFormat,
+    generationError,
+    setGenerationError,
+  } = useAppStore();
   const { error } = useRepurpose();
 
   const displayError = generationError ?? error;
@@ -21,9 +26,7 @@ export function NewContentPage() {
       {/* Left: Input + Controls */}
       <div className="w-[460px] shrink-0 overflow-y-auto border-r border-border bg-surface p-6">
         <h2 className="text-xl font-bold text-text">New Content</h2>
-        <p className="mt-1 text-sm text-text-secondary">
-          Paste or fetch content to repurpose
-        </p>
+        <p className="mt-1 text-sm text-text-secondary">Paste or fetch content to repurpose</p>
 
         <div className="mt-6 space-y-6">
           <ContentInput />
@@ -41,10 +44,7 @@ export function NewContentPage() {
           </div>
 
           {displayError && (
-            <ErrorDisplay
-              message={displayError}
-              onDismiss={() => setGenerationError(null)}
-            />
+            <ErrorDisplay message={displayError} onDismiss={() => setGenerationError(null)} />
           )}
 
           <GenerateButton />

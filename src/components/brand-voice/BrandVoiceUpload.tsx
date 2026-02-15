@@ -46,7 +46,7 @@ export function BrandVoiceUpload({ onAnalyze, isAnalyzing }: BrandVoiceUploadPro
     const validSamples = samples.filter((s) => s.text.trim().length > 0);
     await onAnalyze(
       name.trim(),
-      validSamples.map((s) => s.text.trim()),
+      validSamples.map((s) => s.text.trim())
     );
     setName('');
     setSamples([{ ...EMPTY_SAMPLE }, { ...EMPTY_SAMPLE }, { ...EMPTY_SAMPLE }]);
@@ -124,7 +124,8 @@ export function BrandVoiceUpload({ onAnalyze, isAnalyzing }: BrandVoiceUploadPro
         </button>
         {filledSamples.length < MIN_SAMPLES && (
           <p className="mt-2 text-xs text-warning">
-            {MIN_SAMPLES - filledSamples.length} more sample{MIN_SAMPLES - filledSamples.length !== 1 ? 's' : ''} needed
+            {MIN_SAMPLES - filledSamples.length} more sample
+            {MIN_SAMPLES - filledSamples.length !== 1 ? 's' : ''} needed
           </p>
         )}
       </div>

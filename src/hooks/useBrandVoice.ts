@@ -38,7 +38,7 @@ export function useBrandVoice() {
         setIsAnalyzing(false);
       }
     },
-    [loadVoices],
+    [loadVoices]
   );
 
   const deleteVoice = useCallback(
@@ -50,7 +50,7 @@ export function useBrandVoice() {
         setError(err instanceof Error ? err.message : String(err));
       }
     },
-    [loadVoices],
+    [loadVoices]
   );
 
   const setDefault = useCallback(
@@ -62,8 +62,17 @@ export function useBrandVoice() {
         setError(err instanceof Error ? err.message : String(err));
       }
     },
-    [loadVoices],
+    [loadVoices]
   );
 
-  return { voices: brandVoices, isAnalyzing, isLoading, error, analyze, deleteVoice, setDefault, refresh: loadVoices };
+  return {
+    voices: brandVoices,
+    isAnalyzing,
+    isLoading,
+    error,
+    analyze,
+    deleteVoice,
+    setDefault,
+    refresh: loadVoices,
+  };
 }

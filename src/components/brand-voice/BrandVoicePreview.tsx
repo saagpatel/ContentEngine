@@ -17,14 +17,18 @@ export function BrandVoicePreview({ attributes }: BrandVoicePreviewProps) {
           <p className="mt-1 text-sm text-text">{attributes.vocabulary_level}</p>
         </div>
         <div className="col-span-2">
-          <span className="text-xs font-semibold uppercase text-text-secondary">Sentence Style</span>
+          <span className="text-xs font-semibold uppercase text-text-secondary">
+            Sentence Style
+          </span>
           <p className="mt-1 text-sm text-text">{attributes.sentence_style}</p>
         </div>
       </div>
 
       {attributes.personality_traits.length > 0 && (
         <div>
-          <span className="text-xs font-semibold uppercase text-text-secondary">Personality Traits</span>
+          <span className="text-xs font-semibold uppercase text-text-secondary">
+            Personality Traits
+          </span>
           <div className="mt-2 flex flex-wrap gap-2">
             {attributes.personality_traits.map((trait) => (
               <span
@@ -40,7 +44,9 @@ export function BrandVoicePreview({ attributes }: BrandVoicePreviewProps) {
 
       {attributes.signature_phrases.length > 0 && (
         <div>
-          <span className="text-xs font-semibold uppercase text-text-secondary">Signature Phrases</span>
+          <span className="text-xs font-semibold uppercase text-text-secondary">
+            Signature Phrases
+          </span>
           <ul className="mt-2 space-y-1">
             {attributes.signature_phrases.map((phrase) => (
               <li key={phrase} className="text-sm text-text">

@@ -9,7 +9,7 @@ export function LengthControl() {
 
   return (
     <div>
-      <label className="mb-2 block text-sm font-medium text-text">Length</label>
+      <p className="mb-2 block text-sm font-medium text-text">Length</p>
       <div className="flex rounded-lg border border-border bg-surface p-1">
         {lengths.map((l) => (
           <button

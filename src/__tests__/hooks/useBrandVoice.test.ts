@@ -114,9 +114,7 @@ describe('useBrandVoice', () => {
 
     it('handles analysis errors', async () => {
       vi.mocked(api.getBrandVoices).mockResolvedValue([]);
-      vi.mocked(api.analyzeBrandVoice).mockRejectedValue(
-        new Error('Invalid samples')
-      );
+      vi.mocked(api.analyzeBrandVoice).mockRejectedValue(new Error('Invalid samples'));
 
       const { result } = renderHook(() => useBrandVoice());
 
@@ -194,9 +192,7 @@ describe('useBrandVoice', () => {
     });
 
     it('handles delete errors', async () => {
-      vi.mocked(api.getBrandVoices).mockResolvedValue([
-        mockTauriResponses.brandVoiceProfile(),
-      ]);
+      vi.mocked(api.getBrandVoices).mockResolvedValue([mockTauriResponses.brandVoiceProfile()]);
       vi.mocked(api.deleteBrandVoice).mockRejectedValue(new Error('Cannot delete'));
 
       const { result } = renderHook(() => useBrandVoice());
@@ -220,9 +216,7 @@ describe('useBrandVoice', () => {
 
   describe('setDefaultVoice', () => {
     it('sets voice as default', async () => {
-      vi.mocked(api.getBrandVoices).mockResolvedValue([
-        mockTauriResponses.brandVoiceProfile(),
-      ]);
+      vi.mocked(api.getBrandVoices).mockResolvedValue([mockTauriResponses.brandVoiceProfile()]);
       vi.mocked(api.setDefaultVoice).mockResolvedValue();
 
       const { result } = renderHook(() => useBrandVoice());
@@ -296,15 +290,15 @@ describe('useBrandVoice', () => {
         name: 'Test Voice',
         description: 'A test voice profile',
         is_default: true,
-        sample_count: 5,
         created_at: '2025-01-10T10:00:00Z',
         updated_at: '2025-01-15T14:00:00Z',
         style_attributes: {
           tone: 'professional',
-          vocabulary: 'technical',
-          sentence_structure: 'concise',
-          key_phrases: ['therefore', 'thus'],
-          emoji_usage: 'none',
+          vocabulary_level: 'technical',
+          sentence_style: 'concise',
+          personality_traits: ['analytical'],
+          signature_phrases: ['therefore', 'thus'],
+          avoid_phrases: ['literally'],
         },
       });
 
@@ -321,9 +315,8 @@ describe('useBrandVoice', () => {
       expect(voice.name).toBe('Test Voice');
       expect(voice.description).toBe('A test voice profile');
       expect(voice.is_default).toBe(true);
-      expect(voice.sample_count).toBe(5);
       expect(voice.style_attributes.tone).toBe('professional');
-      expect(voice.style_attributes.key_phrases).toEqual(['therefore', 'thus']);
+      expect(voice.style_attributes.signature_phrases).toEqual(['therefore', 'thus']);
     });
   });
 });

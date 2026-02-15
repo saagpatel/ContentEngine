@@ -6,7 +6,8 @@ import { LoadingSpinner } from '../common/LoadingSpinner';
 import { ErrorDisplay } from '../common/ErrorDisplay';
 
 export function BrandVoiceManager() {
-  const { voices, isAnalyzing, isLoading, error, analyze, deleteVoice, setDefault } = useBrandVoice();
+  const { voices, isAnalyzing, isLoading, error, analyze, deleteVoice, setDefault } =
+    useBrandVoice();
   const [showCreate, setShowCreate] = useState(false);
   const [deleteConfirm, setDeleteConfirm] = useState<string | null>(null);
   const [expandedId, setExpandedId] = useState<string | null>(null);
@@ -54,10 +55,7 @@ export function BrandVoiceManager() {
       ) : (
         <div className="space-y-3">
           {voices.map((voice) => (
-            <div
-              key={voice.id}
-              className="rounded-xl border border-border bg-surface shadow-sm"
-            >
+            <div key={voice.id} className="rounded-xl border border-border bg-surface shadow-sm">
               <div className="flex items-center justify-between p-4">
                 <button
                   onClick={() => setExpandedId(expandedId === voice.id ? null : voice.id)}

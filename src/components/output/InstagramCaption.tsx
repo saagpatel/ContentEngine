@@ -26,9 +26,7 @@ export function InstagramCaption({ output }: InstagramCaptionProps) {
       </div>
       <div className="rounded-lg border border-border bg-surface p-4">
         <p className="whitespace-pre-wrap text-sm leading-relaxed text-text">{mainText}</p>
-        {hashtags && (
-          <p className="mt-3 text-sm text-primary">{hashtags}</p>
-        )}
+        {hashtags && <p className="mt-3 text-sm text-primary">{hashtags}</p>}
       </div>
     </div>
   );

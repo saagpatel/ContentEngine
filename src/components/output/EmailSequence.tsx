@@ -58,7 +58,7 @@ export function EmailSequence({ output }: EmailSequenceProps) {
   const allText = data.emails
     .map(
       (email) =>
-        `Email ${email.email_number}: ${email.label}\nSubject: ${email.subject_line}\nPreview: ${email.preview_text}\n\n${email.body}\n\nCTA: ${email.cta_text}`,
+        `Email ${email.email_number}: ${email.label}\nSubject: ${email.subject_line}\nPreview: ${email.preview_text}\n\n${email.body}\n\nCTA: ${email.cta_text}`
     )
     .join('\n\n---\n\n');
 
@@ -88,11 +88,15 @@ export function EmailSequence({ output }: EmailSequenceProps) {
             {isExpanded && (
               <div className="border-t border-border p-4 space-y-3">
                 <div>
-                  <span className="text-xs font-semibold uppercase text-text-secondary">Subject</span>
+                  <span className="text-xs font-semibold uppercase text-text-secondary">
+                    Subject
+                  </span>
                   <p className="mt-1 text-sm font-medium text-text">{email.subject_line}</p>
                 </div>
                 <div>
-                  <span className="text-xs font-semibold uppercase text-text-secondary">Preview</span>
+                  <span className="text-xs font-semibold uppercase text-text-secondary">
+                    Preview
+                  </span>
                   <p className="mt-1 text-sm text-text-secondary">{email.preview_text}</p>
                 </div>
                 <div>

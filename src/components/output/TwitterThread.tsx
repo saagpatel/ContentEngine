@@ -15,11 +15,26 @@ export function TwitterThread({ output }: TwitterThreadProps) {
       tweets = parsed.filter((item): item is string => typeof item === 'string');
     } else if (parsed && typeof parsed === 'object' && 'tweets' in parsed) {
       // Handle {tweets: [...]} structure
-      const tweetData = parsed as { tweets: any[] };
+      const tweetData = parsed as { tweets: unknown[] };
       if (Array.isArray(tweetData.tweets)) {
         tweets = tweetData.tweets
-          .map((t) => (typeof t === 'string' ? t : t?.text))
-          .filter((t): t is string => typeof t === 'string');
+          .map((tweet) => {
+            if (typeof tweet === 'string') {
+              return tweet;
+            }
+
+            if (
+              tweet &&
+              typeof tweet === 'object' &&
+              'text' in tweet &&
+              typeof tweet.text === 'string'
+            ) {
+              return tweet.text;
+            }
+
+            return null;
+          })
+          .filter((tweet): tweet is string => typeof tweet === 'string');
       }
     }
   } catch {

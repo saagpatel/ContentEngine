@@ -10,9 +10,12 @@ export function SettingsModal() {
 
   useEffect(() => {
     if (settingsOpen) {
-      api.getApiKey().then((key) => {
-        if (key) setApiKey(key);
-      }).catch(() => {});
+      api
+        .getApiKey()
+        .then((key) => {
+          if (key) setApiKey(key);
+        })
+        .catch(() => {});
     }
   }, [settingsOpen]);
 
@@ -73,12 +76,8 @@ export function SettingsModal() {
           >
             {status === 'saving' ? 'Saving...' : 'Save'}
           </button>
-          {status === 'saved' && (
-            <span className="text-sm text-success">Saved</span>
-          )}
-          {status === 'error' && (
-            <span className="text-sm text-danger">Failed to save</span>
-          )}
+          {status === 'saved' && <span className="text-sm text-success">Saved</span>}
+          {status === 'error' && <span className="text-sm text-danger">Failed to save</span>}
         </div>
       </div>
     </div>

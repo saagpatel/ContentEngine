@@ -27,7 +27,9 @@ describe('contentValidation', () => {
   });
 
   it('requires minimum word count when URL mode is disabled', () => {
-    const fortyNineWords = Array.from({ length: MIN_CONTENT_WORDS - 1 }, (_, i) => `w${i}`).join(' ');
+    const fortyNineWords = Array.from({ length: MIN_CONTENT_WORDS - 1 }, (_, i) => `w${i}`).join(
+      ' '
+    );
     const fiftyWords = Array.from({ length: MIN_CONTENT_WORDS }, (_, i) => `w${i}`).join(' ');
 
     expect(
