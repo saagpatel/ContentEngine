@@ -22,8 +22,8 @@ ContentEngine transforms your written content into **6 platform-specific formats
 
 - 📝 **Multi-Format Generation**: Transform content into Twitter threads, LinkedIn posts, Instagram captions, newsletters, email sequences, and summaries
 - 🎨 **Brand Voice Profiles**: Analyze writing samples to create custom brand voices
-- 📊 **Generation History**: Browse, search, and manage all past generations
-- 💾 **Markdown Export**: Export all formats to universally-compatible Markdown files
+- 📊 **Generation History**: Browse and manage all past generations
+- 💾 **PDF Export**: Export all formats to a single PDF file
 - 🔒 **Local-First**: All data stored on your device—no cloud sync, no tracking
 - 📈 **Usage Tracking**: Monitor monthly generation usage with configurable limits
 
@@ -41,6 +41,7 @@ ContentEngine transforms your written content into **6 platform-specific formats
 ### End Users
 
 Download the latest release for your platform:
+
 - **macOS**: `ContentEngine-macos-universal.dmg`
 - **Windows**: `ContentEngine-windows-x64.msi`
 - **Linux**: `ContentEngine-linux-x64.AppImage`
@@ -74,7 +75,7 @@ Use the releases page for installation assets and platform-specific install inst
 
 1. Go to **History** page
 2. Click any generation
-3. Click **Export to Markdown**
+3. Click **Export PDF**
 4. Files saved to `{app_data_dir}/exports/`
 
 ## Privacy
@@ -82,25 +83,28 @@ Use the releases page for installation assets and platform-specific install inst
 **Your data stays on your device.** We don't collect analytics, crash reports, or telemetry.
 
 - All content stored locally in SQLite
-- API key secured in OS keyring
+- API key stored locally in the app's SQLite settings table
 - No cloud sync, no third-party tracking
 - See [PRIVACY.md](PRIVACY.md) for details
 
 ## Tech Stack
 
 **Frontend:**
+
 - React 19 + TypeScript
 - Zustand (state management)
 - Tailwind CSS 4
 - Vite 7
 
 **Backend:**
+
 - Rust + Tauri v2
 - SQLite (local database)
 - Tracing (structured logging)
 - reqwest (HTTP client)
 
 **Testing:**
+
 - Vitest (frontend)
 - Cargo test (backend)
 - 85+ tests, 48% coverage
@@ -179,8 +183,8 @@ MIT License - see [LICENSE](LICENSE) for details.
 
 ## Support
 
-- 🐛 [Report Bug](https://github.com/YOUR_USERNAME/ContentEngine/issues)
-- 💡 [Request Feature](https://github.com/YOUR_USERNAME/ContentEngine/issues)
+- 🐛 [Report Bug](https://github.com/saagar210/ContentEngine/issues)
+- 💡 [Request Feature](https://github.com/saagar210/ContentEngine/issues)
 
 ---
 

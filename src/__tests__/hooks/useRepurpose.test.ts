@@ -7,6 +7,15 @@ import { mockTauriResponses } from '../mocks/tauriApi.mock';
 
 vi.mock('../../lib/tauriApi');
 
+function createDeferred<T>() {
+  let resolve!: (value: T | PromiseLike<T>) => void;
+  const promise = new Promise<T>((res) => {
+    resolve = res;
+  });
+
+  return { promise, resolve };
+}
+
 describe('useRepurpose', () => {
   beforeEach(() => {
     vi.clearAllMocks();
@@ -63,12 +72,8 @@ describe('useRepurpose', () => {
     });
 
     it('sets isGenerating to true during generation', async () => {
-      vi.mocked(api.repurposeContent).mockImplementation(
-        () =>
-          new Promise((resolve) =>
-            setTimeout(() => resolve(mockTauriResponses.repurposeResponse()), 100)
-          )
-      );
+      const deferred = createDeferred<ReturnType<typeof mockTauriResponses.repurposeResponse>>();
+      vi.mocked(api.repurposeContent).mockReturnValue(deferred.promise);
 
       useAppStore.setState({
         rawContent: 'Content here',
@@ -76,22 +81,21 @@ describe('useRepurpose', () => {
 
       const { result } = renderHook(() => useRepurpose());
 
-      act(() => {
-        result.current.generate();
+      await act(async () => {
+        void result.current.generate();
       });
 
       // Should be generating immediately
-      await waitFor(() => {
-        expect(result.current.isGenerating).toBe(true);
+      expect(result.current.isGenerating).toBe(true);
+
+      await act(async () => {
+        deferred.resolve(mockTauriResponses.repurposeResponse());
+        await deferred.promise;
       });
 
-      // Should finish
-      await waitFor(
-        () => {
-          expect(result.current.isGenerating).toBe(false);
-        },
-        { timeout: 200 }
-      );
+      await waitFor(() => {
+        expect(result.current.isGenerating).toBe(false);
+      });
     });
 
     it('handles API errors gracefully', async () => {
@@ -120,9 +124,7 @@ describe('useRepurpose', () => {
         generationError: 'Previous error',
       });
 
-      vi.mocked(api.repurposeContent).mockResolvedValue(
-        mockTauriResponses.repurposeResponse()
-      );
+      vi.mocked(api.repurposeContent).mockResolvedValue(mockTauriResponses.repurposeResponse());
 
       const { result } = renderHook(() => useRepurpose());
 
@@ -144,9 +146,7 @@ describe('useRepurpose', () => {
         word_count: 100,
       };
       vi.mocked(api.fetchUrl).mockResolvedValue(mockFetched);
-      vi.mocked(api.repurposeContent).mockResolvedValue(
-        mockTauriResponses.repurposeResponse()
-      );
+      vi.mocked(api.repurposeContent).mockResolvedValue(mockTauriResponses.repurposeResponse());
 
       useAppStore.setState({
         useUrl: true,
@@ -200,9 +200,7 @@ describe('useRepurpose', () => {
         text: 'Content',
         word_count: 50,
       });
-      vi.mocked(api.repurposeContent).mockResolvedValue(
-        mockTauriResponses.repurposeResponse()
-      );
+      vi.mocked(api.repurposeContent).mockResolvedValue(mockTauriResponses.repurposeResponse());
 
       useAppStore.setState({
         useUrl: true,
@@ -228,9 +226,7 @@ describe('useRepurpose', () => {
 
   describe('with brand voice', () => {
     it('includes brand voice ID in request', async () => {
-      vi.mocked(api.repurposeContent).mockResolvedValue(
-        mockTauriResponses.repurposeResponse()
-      );
+      vi.mocked(api.repurposeContent).mockResolvedValue(mockTauriResponses.repurposeResponse());
 
       useAppStore.setState({
         rawContent: 'Content',
@@ -253,9 +249,7 @@ describe('useRepurpose', () => {
     });
 
     it('omits voice_id if null', async () => {
-      vi.mocked(api.repurposeContent).mockResolvedValue(
-        mockTauriResponses.repurposeResponse()
-      );
+      vi.mocked(api.repurposeContent).mockResolvedValue(mockTauriResponses.repurposeResponse());
 
       useAppStore.setState({
         rawContent: 'Content',
@@ -280,9 +274,7 @@ describe('useRepurpose', () => {
 
   describe('platform config', () => {
     it('includes platform config if provided', async () => {
-      vi.mocked(api.repurposeContent).mockResolvedValue(
-        mockTauriResponses.repurposeResponse()
-      );
+      vi.mocked(api.repurposeContent).mockResolvedValue(mockTauriResponses.repurposeResponse());
 
       const config = { tweet_count: 5 };
 
@@ -307,9 +299,7 @@ describe('useRepurpose', () => {
     });
 
     it('omits config if empty', async () => {
-      vi.mocked(api.repurposeContent).mockResolvedValue(
-        mockTauriResponses.repurposeResponse()
-      );
+      vi.mocked(api.repurposeContent).mockResolvedValue(mockTauriResponses.repurposeResponse());
 
       useAppStore.setState({
         rawContent: 'Content',
@@ -372,6 +362,8 @@ describe('useRepurpose', () => {
     });
 
     it('clears previous outputs before generating', async () => {
+      const deferred = createDeferred<ReturnType<typeof mockTauriResponses.repurposeResponse>>();
+
       useAppStore.setState({
         rawContent: 'Content',
         outputs: [
@@ -385,19 +377,22 @@ describe('useRepurpose', () => {
         ],
       });
 
-      vi.mocked(api.repurposeContent).mockResolvedValue(
-        mockTauriResponses.repurposeResponse()
-      );
+      vi.mocked(api.repurposeContent).mockReturnValue(deferred.promise);
 
       const { result } = renderHook(() => useRepurpose());
 
-      act(() => {
-        result.current.generate();
+      await act(async () => {
+        void result.current.generate();
       });
 
       // Outputs should be cleared immediately
       const state = useAppStore.getState();
       expect(state.outputs).toHaveLength(0);
+
+      await act(async () => {
+        deferred.resolve(mockTauriResponses.repurposeResponse());
+        await deferred.promise;
+      });
     });
   });
 });

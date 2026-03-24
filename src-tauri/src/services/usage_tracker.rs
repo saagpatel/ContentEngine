@@ -52,22 +52,6 @@ pub async fn check_usage_limit(db: &DbState) -> Result<(), AppError> {
     Ok(())
 }
 
-pub async fn record_usage(
-    db: &DbState,
-    content_input_id: &str,
-    format_count: u32,
-) -> Result<(), AppError> {
-    let conn = db.conn.lock().await;
-    let id = uuid::Uuid::new_v4().to_string();
-
-    conn.execute(
-        "INSERT INTO usage_records (id, content_input_id, format_count) VALUES (?1, ?2, ?3)",
-        params![id, content_input_id, format_count],
-    )?;
-
-    Ok(())
-}
-
 pub async fn get_api_key(db: &DbState) -> Result<String, AppError> {
     let conn = db.conn.lock().await;
     let key: String = conn

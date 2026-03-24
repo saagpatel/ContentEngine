@@ -90,3 +90,90 @@ fn escape_html(s: &str) -> String {
         .replace('>', "&gt;")
         .replace('"', "&quot;")
 }
+
+#[cfg(test)]
+mod tests {
+    use super::export_to_pdf;
+    use crate::models::content::{ContentInput, RepurposedOutput};
+    use std::path::Path;
+
+    fn test_input() -> ContentInput {
+        ContentInput {
+            id: "content-1".to_string(),
+            source_url: Some("https://example.com/article".to_string()),
+            raw_text: "Original source text for testing".to_string(),
+            title: Some("Test Export".to_string()),
+            word_count: 5,
+            created_at: "2026-03-01T00:00:00Z".to_string(),
+        }
+    }
+
+    fn test_outputs() -> Vec<RepurposedOutput> {
+        vec![RepurposedOutput {
+            id: "output-1".to_string(),
+            content_input_id: "content-1".to_string(),
+            format: "linkedin".to_string(),
+            output_text: "This is a LinkedIn draft.".to_string(),
+            created_at: "2026-03-01T00:00:00Z".to_string(),
+        }]
+    }
+
+    #[test]
+    fn exports_pdf_to_file() {
+        let temp = tempfile::tempdir().expect("create temp dir");
+        let output_path = temp.path().join("export.pdf");
+
+        let result = export_to_pdf(
+            &test_input(),
+            &test_outputs(),
+            output_path.to_str().expect("utf8 output path"),
+        )
+        .expect("export should succeed");
+
+        assert_eq!(result, output_path.to_string_lossy().to_string());
+        assert!(Path::new(&result).exists(), "exported PDF should exist");
+
+        let metadata = std::fs::metadata(&result).expect("read metadata");
+        assert!(
+            metadata.len() > 0,
+            "exported PDF should not be an empty file"
+        );
+    }
+
+    #[test]
+    fn returns_error_when_parent_dir_is_missing() {
+        let temp = tempfile::tempdir().expect("create temp dir");
+        let output_path = temp.path().join("missing").join("export.pdf");
+
+        let error = export_to_pdf(
+            &test_input(),
+            &test_outputs(),
+            output_path.to_str().expect("utf8 output path"),
+        )
+        .expect_err("export should fail when parent directory is missing");
+
+        let message = error.to_string();
+        assert!(
+            message.contains("PDF export error"),
+            "error should map to PDF export failures"
+        );
+    }
+
+    #[test]
+    fn returns_error_when_output_path_is_directory() {
+        let temp = tempfile::tempdir().expect("create temp dir");
+
+        let error = export_to_pdf(
+            &test_input(),
+            &test_outputs(),
+            temp.path().to_str().expect("utf8 output path"),
+        )
+        .expect_err("export should fail when output path points to a directory");
+
+        let message = error.to_string();
+        assert!(
+            message.contains("PDF export error"),
+            "directory write failure should map to PDF export error"
+        );
+    }
+}

@@ -16,6 +16,7 @@
     "test:coverage": "vitest run --coverage",
     "test:ui": "vitest --ui",
     "type-check": "tsc --noEmit",
+    "typecheck": "pnpm type-check",
     "lint": "eslint src --ext .ts,.tsx --max-warnings 0",
     "lint:fix": "eslint src --ext .ts,.tsx --fix",
     "format": "prettier --write \"src/**/*.{ts,tsx,css,md}\"",
@@ -41,6 +42,12 @@
     "perf:assets": "bash scripts/perf/check-assets.sh",
     "perf:memory": "node --expose-gc scripts/perf/memory-smoke.mjs",
     "perf:summary": "node scripts/perf/summarize.mjs",
+    "test:integration": "cargo test --manifest-path src-tauri/Cargo.toml --lib",
+    "test:e2e:smoke": "vitest run src/lib/contentValidation.test.ts src/components/input/GenerateButton.test.tsx",
+    "docs:generate": "node scripts/docs/generate-contract.mjs",
+    "docs:check": "node scripts/docs/check-contract.mjs",
+    "release:verify-version": "node scripts/release/verify-version-sync.mjs",
+    "release:collect-artifacts": "bash scripts/release/collect-artifacts.sh",
     "lint-staged": "lint-staged"
   },
   "dependencies": {
