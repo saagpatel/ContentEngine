@@ -1,0 +1,761 @@
+import { mkdirSync, writeFileSync } from 'node:fs';
+
+const contract = {
+  openapi: '3.1.0',
+  info: {
+    title: 'ContentEngine Command Contract',
+    version: '1.0.0',
+    description: 'Generated contract for Tauri command surface used by the frontend.',
+  },
+  paths: {
+    '/commands/save_content': {
+      post: {
+        summary: 'Save raw content in local history store',
+        requestBody: {
+          required: true,
+          content: {
+            'application/json': {
+              schema: { $ref: '#/components/schemas/SaveContentRequest' },
+              examples: {
+                basic: {
+                  value: {
+                    text: 'A long form source article',
+                    source_url: 'https://example.com/article',
+                    title: 'Example article',
+                  },
+                },
+              },
+            },
+          },
+        },
+        responses: {
+          200: {
+            description: 'Content was persisted successfully',
+            content: {
+              'application/json': {
+                schema: { $ref: '#/components/schemas/ContentInput' },
+                examples: {
+                  success: {
+                    value: {
+                      id: 'fcbff7bf-8f85-4528-b132-e28254f7f290',
+                      source_url: 'https://example.com/article',
+                      raw_text: 'A long form source article',
+                      title: 'Example article',
+                      word_count: 5,
+                      created_at: '2026-03-01T12:00:00Z',
+                    },
+                  },
+                },
+              },
+            },
+          },
+          400: {
+            description: 'Validation failed',
+            content: {
+              'application/json': {
+                schema: { $ref: '#/components/schemas/ErrorMessage' },
+                examples: {
+                  invalid: {
+                    value: 'Validation error: Content text cannot be empty',
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
+    },
+    '/commands/fetch_url': {
+      post: {
+        summary: 'Fetch article content from URL',
+        requestBody: {
+          required: true,
+          content: {
+            'application/json': {
+              schema: {
+                type: 'object',
+                required: ['url'],
+                properties: { url: { type: 'string' } },
+              },
+              examples: {
+                valid: { value: { url: 'https://example.com/post' } },
+              },
+            },
+          },
+        },
+        responses: {
+          200: {
+            description: 'Fetched URL content',
+            content: {
+              'application/json': {
+                schema: { $ref: '#/components/schemas/FetchedContent' },
+                examples: {
+                  success: {
+                    value: {
+                      title: 'Remote post',
+                      text: 'Fetched text body',
+                      word_count: 250,
+                    },
+                  },
+                },
+              },
+            },
+          },
+          400: {
+            description: 'URL validation or fetch failure',
+            content: {
+              'application/json': {
+                schema: { $ref: '#/components/schemas/ErrorMessage' },
+                examples: {
+                  invalid: { value: 'Validation error: URL must start with http:// or https://' },
+                },
+              },
+            },
+          },
+        },
+      },
+    },
+    '/commands/repurpose_content': {
+      post: {
+        summary: 'Generate repurposed outputs for selected formats',
+        requestBody: {
+          required: true,
+          content: {
+            'application/json': {
+              schema: { $ref: '#/components/schemas/RepurposeEnvelope' },
+              examples: {
+                generate: {
+                  value: {
+                    request: {
+                      content: 'Source content body',
+                      source_url: 'https://example.com/post',
+                      title: 'Source title',
+                      formats: ['twitter_thread', 'linkedin'],
+                      tone: 'professional',
+                      length: 'medium',
+                      voice_id: 'voice-123',
+                      config: { tweet_count: 5 },
+                    },
+                  },
+                },
+              },
+            },
+          },
+        },
+        responses: {
+          200: {
+            description: 'Repurposed content generated',
+            content: {
+              'application/json': {
+                schema: { $ref: '#/components/schemas/RepurposeResponse' },
+                examples: {
+                  success: {
+                    value: {
+                      content_input_id: 'input-123',
+                      outputs: [
+                        {
+                          id: 'output-1',
+                          content_input_id: 'input-123',
+                          format: 'twitter_thread',
+                          output_text: 'Thread output',
+                          created_at: '2026-03-01T12:00:00Z',
+                        },
+                      ],
+                    },
+                  },
+                },
+              },
+            },
+          },
+          429: {
+            description: 'Usage limit reached',
+            content: {
+              'application/json': {
+                schema: { $ref: '#/components/schemas/ErrorMessage' },
+                examples: {
+                  usage_limit: {
+                    value: 'Usage limit reached: 50/50 repurposings used this month',
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
+    },
+    '/commands/get_history': {
+      post: {
+        summary: 'Get paginated generation history',
+        requestBody: {
+          required: false,
+          content: {
+            'application/json': {
+              schema: { $ref: '#/components/schemas/GetHistoryRequest' },
+              examples: {
+                default: { value: { page: 1, page_size: 20 } },
+              },
+            },
+          },
+        },
+        responses: {
+          200: {
+            description: 'History page payload',
+            content: {
+              'application/json': {
+                schema: { $ref: '#/components/schemas/HistoryPage' },
+                examples: {
+                  success: {
+                    value: {
+                      items: [
+                        {
+                          id: 'input-123',
+                          title: 'Source title',
+                          word_count: 500,
+                          format_count: 6,
+                          created_at: '2026-03-01T12:00:00Z',
+                        },
+                      ],
+                      total: 1,
+                      page: 1,
+                      page_size: 20,
+                    },
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
+    },
+    '/commands/get_history_detail': {
+      post: {
+        summary: 'Get a full history detail record',
+        requestBody: {
+          required: true,
+          content: {
+            'application/json': {
+              schema: { type: 'object', required: ['id'], properties: { id: { type: 'string' } } },
+              examples: {
+                detail: { value: { id: 'input-123' } },
+              },
+            },
+          },
+        },
+        responses: {
+          200: {
+            description: 'History detail payload',
+            content: {
+              'application/json': {
+                schema: { $ref: '#/components/schemas/HistoryDetail' },
+                examples: {
+                  success: {
+                    value: {
+                      input: {
+                        id: 'input-123',
+                        source_url: 'https://example.com/post',
+                        raw_text: 'Source content body',
+                        title: 'Source title',
+                        word_count: 500,
+                        created_at: '2026-03-01T12:00:00Z',
+                      },
+                      outputs: [
+                        {
+                          id: 'output-1',
+                          content_input_id: 'input-123',
+                          format: 'linkedin',
+                          output_text: 'LinkedIn output',
+                          created_at: '2026-03-01T12:01:00Z',
+                        },
+                      ],
+                    },
+                  },
+                },
+              },
+            },
+          },
+          404: {
+            description: 'Requested content item was not found',
+            content: {
+              'application/json': {
+                schema: { $ref: '#/components/schemas/ErrorMessage' },
+                examples: {
+                  not_found: { value: "Not found: Content input 'missing-id' not found" },
+                },
+              },
+            },
+          },
+        },
+      },
+    },
+    '/commands/delete_history_item': {
+      post: {
+        summary: 'Delete a content input and related outputs',
+        requestBody: {
+          required: true,
+          content: {
+            'application/json': {
+              schema: { type: 'object', required: ['id'], properties: { id: { type: 'string' } } },
+              examples: {
+                remove: { value: { id: 'input-123' } },
+              },
+            },
+          },
+        },
+        responses: {
+          200: { description: 'Deletion completed' },
+          404: {
+            description: 'Requested item was not found',
+            content: {
+              'application/json': {
+                schema: { $ref: '#/components/schemas/ErrorMessage' },
+                examples: {
+                  not_found: { value: "Not found: Content input 'missing-id' not found" },
+                },
+              },
+            },
+          },
+        },
+      },
+    },
+    '/commands/export_pdf': {
+      post: {
+        summary: 'Export one history item to a local PDF file',
+        requestBody: {
+          required: true,
+          content: {
+            'application/json': {
+              schema: {
+                type: 'object',
+                required: ['content_input_id'],
+                properties: { content_input_id: { type: 'string' } },
+              },
+              examples: {
+                export: { value: { content_input_id: 'input-123' } },
+              },
+            },
+          },
+        },
+        responses: {
+          200: {
+            description: 'Absolute file path to exported PDF',
+            content: {
+              'application/json': {
+                schema: { type: 'string' },
+                examples: {
+                  success: {
+                    value:
+                      '/Users/user/Library/Application Support/com.contentengine.app/exports/input-123-20260301-120000.pdf',
+                  },
+                },
+              },
+            },
+          },
+          400: {
+            description: 'Validation error for empty outputs',
+            content: {
+              'application/json': {
+                schema: { $ref: '#/components/schemas/ErrorMessage' },
+                examples: {
+                  no_outputs: { value: 'Validation error: No outputs to export' },
+                },
+              },
+            },
+          },
+        },
+      },
+    },
+    '/commands/get_usage_info': {
+      post: {
+        summary: 'Get monthly usage counters',
+        responses: {
+          200: {
+            description: 'Usage counters',
+            content: {
+              'application/json': {
+                schema: { $ref: '#/components/schemas/UsageInfo' },
+                examples: {
+                  success: {
+                    value: { used: 12, limit: 50, resets_at: '2026-04-01T00:00:00Z' },
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
+    },
+    '/commands/get_api_key': {
+      post: {
+        summary: 'Get masked API key for display',
+        responses: {
+          200: {
+            description: 'Masked API key or empty string',
+            content: {
+              'application/json': {
+                schema: { type: 'string' },
+                examples: {
+                  empty: { value: '' },
+                  masked: { value: 'sk-a...1234' },
+                },
+              },
+            },
+          },
+        },
+      },
+    },
+    '/commands/set_api_key': {
+      post: {
+        summary: 'Store Claude API key',
+        requestBody: {
+          required: true,
+          content: {
+            'application/json': {
+              schema: {
+                type: 'object',
+                required: ['api_key'],
+                properties: { api_key: { type: 'string' } },
+              },
+              examples: {
+                set: { value: { api_key: 'sk-ant-example-key' } },
+              },
+            },
+          },
+        },
+        responses: {
+          200: { description: 'API key stored successfully' },
+          400: {
+            description: 'Invalid key format',
+            content: {
+              'application/json': {
+                schema: { $ref: '#/components/schemas/ErrorMessage' },
+                examples: {
+                  invalid: {
+                    value:
+                      "Validation error: Invalid API key format. Anthropic API keys start with 'sk-ant-'",
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
+    },
+    '/commands/get_brand_voices': {
+      post: {
+        summary: 'List saved brand voice profiles',
+        responses: {
+          200: {
+            description: 'Brand voice profiles',
+            content: {
+              'application/json': {
+                schema: {
+                  type: 'array',
+                  items: { $ref: '#/components/schemas/BrandVoiceProfile' },
+                },
+                examples: {
+                  success: {
+                    value: [
+                      {
+                        id: 'voice-123',
+                        name: 'Founder Voice',
+                        description: 'Conversational but concise',
+                        style_attributes: {
+                          tone: 'confident',
+                          vocabulary_level: 'accessible',
+                          sentence_style: 'short paragraphs',
+                          personality_traits: ['direct', 'curious'],
+                          signature_phrases: ['Let us break this down'],
+                          avoid_phrases: ['synergy'],
+                        },
+                        is_default: true,
+                        created_at: '2026-03-01T12:00:00Z',
+                        updated_at: '2026-03-01T12:00:00Z',
+                      },
+                    ],
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
+    },
+    '/commands/analyze_brand_voice': {
+      post: {
+        summary: 'Analyze writing samples and save a brand voice profile',
+        requestBody: {
+          required: true,
+          content: {
+            'application/json': {
+              schema: { $ref: '#/components/schemas/AnalyzeVoiceRequest' },
+              examples: {
+                analyze: {
+                  value: {
+                    name: 'Founder Voice',
+                    description: 'A style for product updates',
+                    samples: [
+                      'We shipped a smaller but meaningful release today.',
+                      'Our focus is reliability and clear communication.',
+                    ],
+                  },
+                },
+              },
+            },
+          },
+        },
+        responses: {
+          200: {
+            description: 'Created brand voice profile',
+            content: {
+              'application/json': {
+                schema: { $ref: '#/components/schemas/BrandVoiceProfile' },
+              },
+            },
+          },
+          400: {
+            description: 'Validation or upstream analysis failure',
+            content: {
+              'application/json': {
+                schema: { $ref: '#/components/schemas/ErrorMessage' },
+                examples: {
+                  invalid: { value: 'Validation error: Brand voice name cannot be empty' },
+                },
+              },
+            },
+          },
+        },
+      },
+    },
+    '/commands/delete_brand_voice': {
+      post: {
+        summary: 'Delete a saved brand voice profile',
+        requestBody: {
+          required: true,
+          content: {
+            'application/json': {
+              schema: {
+                type: 'object',
+                required: ['id'],
+                properties: { id: { type: 'string' } },
+              },
+            },
+          },
+        },
+        responses: {
+          200: { description: 'Brand voice deleted' },
+          404: {
+            description: 'Requested profile not found',
+            content: {
+              'application/json': {
+                schema: { $ref: '#/components/schemas/ErrorMessage' },
+                examples: {
+                  missing: { value: "Not found: Brand voice profile 'missing-id' not found" },
+                },
+              },
+            },
+          },
+        },
+      },
+    },
+    '/commands/set_default_voice': {
+      post: {
+        summary: 'Set one brand voice as the default',
+        requestBody: {
+          required: true,
+          content: {
+            'application/json': {
+              schema: {
+                type: 'object',
+                required: ['id'],
+                properties: { id: { type: 'string' } },
+              },
+            },
+          },
+        },
+        responses: {
+          200: { description: 'Default voice updated' },
+          404: {
+            description: 'Requested profile not found',
+            content: {
+              'application/json': {
+                schema: { $ref: '#/components/schemas/ErrorMessage' },
+                examples: {
+                  missing: { value: "Not found: Brand voice profile 'missing-id' not found" },
+                },
+              },
+            },
+          },
+        },
+      },
+    },
+  },
+  components: {
+    schemas: {
+      ErrorMessage: { type: 'string' },
+      SaveContentRequest: {
+        type: 'object',
+        required: ['text'],
+        properties: {
+          text: { type: 'string' },
+          source_url: { type: 'string', nullable: true },
+          title: { type: 'string', nullable: true },
+        },
+      },
+      ContentInput: {
+        type: 'object',
+        required: ['id', 'raw_text', 'word_count', 'created_at'],
+        properties: {
+          id: { type: 'string' },
+          source_url: { type: 'string', nullable: true },
+          raw_text: { type: 'string' },
+          title: { type: 'string', nullable: true },
+          word_count: { type: 'integer' },
+          created_at: { type: 'string', format: 'date-time' },
+        },
+      },
+      FetchedContent: {
+        type: 'object',
+        required: ['text', 'word_count'],
+        properties: {
+          title: { type: 'string', nullable: true },
+          text: { type: 'string' },
+          word_count: { type: 'integer' },
+        },
+      },
+      RepurposeEnvelope: {
+        type: 'object',
+        required: ['request'],
+        properties: {
+          request: { $ref: '#/components/schemas/RepurposeRequest' },
+        },
+      },
+      RepurposeRequest: {
+        type: 'object',
+        required: ['content', 'formats', 'tone', 'length'],
+        properties: {
+          content: { type: 'string' },
+          source_url: { type: 'string', nullable: true },
+          title: { type: 'string', nullable: true },
+          formats: { type: 'array', items: { type: 'string' } },
+          tone: { type: 'string' },
+          length: { type: 'string' },
+          voice_id: { type: 'string', nullable: true },
+          config: { type: 'object', additionalProperties: true, nullable: true },
+        },
+      },
+      RepurposeResponse: {
+        type: 'object',
+        required: ['content_input_id', 'outputs'],
+        properties: {
+          content_input_id: { type: 'string' },
+          outputs: { type: 'array', items: { $ref: '#/components/schemas/RepurposedOutput' } },
+        },
+      },
+      RepurposedOutput: {
+        type: 'object',
+        required: ['id', 'content_input_id', 'format', 'output_text', 'created_at'],
+        properties: {
+          id: { type: 'string' },
+          content_input_id: { type: 'string' },
+          format: { type: 'string' },
+          output_text: { type: 'string' },
+          created_at: { type: 'string', format: 'date-time' },
+        },
+      },
+      GetHistoryRequest: {
+        type: 'object',
+        properties: {
+          page: { type: 'integer', minimum: 1 },
+          page_size: { type: 'integer', minimum: 1, maximum: 100 },
+        },
+      },
+      HistoryItem: {
+        type: 'object',
+        required: ['id', 'word_count', 'format_count', 'created_at'],
+        properties: {
+          id: { type: 'string' },
+          title: { type: 'string', nullable: true },
+          word_count: { type: 'integer' },
+          format_count: { type: 'integer' },
+          created_at: { type: 'string', format: 'date-time' },
+        },
+      },
+      HistoryPage: {
+        type: 'object',
+        required: ['items', 'total', 'page', 'page_size'],
+        properties: {
+          items: { type: 'array', items: { $ref: '#/components/schemas/HistoryItem' } },
+          total: { type: 'integer' },
+          page: { type: 'integer' },
+          page_size: { type: 'integer' },
+        },
+      },
+      HistoryDetail: {
+        type: 'object',
+        required: ['input', 'outputs'],
+        properties: {
+          input: { $ref: '#/components/schemas/ContentInput' },
+          outputs: { type: 'array', items: { $ref: '#/components/schemas/RepurposedOutput' } },
+        },
+      },
+      UsageInfo: {
+        type: 'object',
+        required: ['used', 'limit', 'resets_at'],
+        properties: {
+          used: { type: 'integer' },
+          limit: { type: 'integer' },
+          resets_at: { type: 'string', format: 'date-time' },
+        },
+      },
+      AnalyzeVoiceRequest: {
+        type: 'object',
+        required: ['name', 'samples'],
+        properties: {
+          name: { type: 'string' },
+          description: { type: 'string', nullable: true },
+          samples: {
+            type: 'array',
+            items: { type: 'string' },
+            minItems: 1,
+          },
+        },
+      },
+      StyleAttributes: {
+        type: 'object',
+        required: [
+          'tone',
+          'vocabulary_level',
+          'sentence_style',
+          'personality_traits',
+          'signature_phrases',
+          'avoid_phrases',
+        ],
+        properties: {
+          tone: { type: 'string' },
+          vocabulary_level: { type: 'string' },
+          sentence_style: { type: 'string' },
+          personality_traits: { type: 'array', items: { type: 'string' } },
+          signature_phrases: { type: 'array', items: { type: 'string' } },
+          avoid_phrases: { type: 'array', items: { type: 'string' } },
+        },
+      },
+      BrandVoiceProfile: {
+        type: 'object',
+        required: ['id', 'name', 'style_attributes', 'is_default', 'created_at', 'updated_at'],
+        properties: {
+          id: { type: 'string' },
+          name: { type: 'string' },
+          description: { type: 'string', nullable: true },
+          style_attributes: { $ref: '#/components/schemas/StyleAttributes' },
+          is_default: { type: 'boolean' },
+          created_at: { type: 'string', format: 'date-time' },
+          updated_at: { type: 'string', format: 'date-time' },
+        },
+      },
+    },
+  },
+};
+
+mkdirSync('openapi', { recursive: true });
+writeFileSync('openapi/openapi.generated.json', `${JSON.stringify(contract, null, 2)}\n`);
+console.log('Generated openapi/openapi.generated.json');
