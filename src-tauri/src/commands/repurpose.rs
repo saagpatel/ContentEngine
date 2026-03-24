@@ -9,6 +9,75 @@ use crate::models::content::{RepurposeRequest, RepurposeResponse, RepurposedOutp
 use crate::services::claude_api::ClaudeApiClient;
 use crate::services::usage_tracker;
 
+fn persist_successful_repurpose(
+    conn: &mut rusqlite::Connection,
+    request: &RepurposeRequest,
+    results: &[(crate::models::platform::OutputFormat, String)],
+) -> Result<RepurposeResponse, AppError> {
+    if results.is_empty() {
+        return Err(AppError::ClaudeApi(
+            "Claude returned no outputs".to_string(),
+        ));
+    }
+
+    let tx = conn.transaction()?;
+
+    let content_input_id = uuid::Uuid::new_v4().to_string();
+    let word_count = request.content.split_whitespace().count() as u32;
+    let created_at = chrono::Utc::now().to_rfc3339();
+
+    tx.execute(
+        "INSERT INTO content_inputs (id, source_url, raw_text, title, word_count, created_at) VALUES (?1, ?2, ?3, ?4, ?5, ?6)",
+        params![
+            content_input_id,
+            request.source_url,
+            request.content,
+            request.title,
+            word_count,
+            created_at
+        ],
+    )?;
+
+    let mut outputs = Vec::new();
+    for (format, text) in results {
+        let output_id = uuid::Uuid::new_v4().to_string();
+        let output_created_at = chrono::Utc::now().to_rfc3339();
+        let format_str = format.to_string();
+
+        tx.execute(
+            "INSERT INTO repurposed_outputs (id, content_input_id, format, output_text, created_at) VALUES (?1, ?2, ?3, ?4, ?5)",
+            params![
+                output_id,
+                content_input_id,
+                format_str,
+                text,
+                output_created_at
+            ],
+        )?;
+
+        outputs.push(RepurposedOutput {
+            id: output_id,
+            content_input_id: content_input_id.clone(),
+            format: format_str,
+            output_text: text.clone(),
+            created_at: output_created_at,
+        });
+    }
+
+    let usage_id = uuid::Uuid::new_v4().to_string();
+    tx.execute(
+        "INSERT INTO usage_records (id, content_input_id, format_count) VALUES (?1, ?2, ?3)",
+        params![usage_id, content_input_id, results.len() as u32],
+    )?;
+
+    tx.commit()?;
+
+    Ok(RepurposeResponse {
+        content_input_id,
+        outputs,
+    })
+}
+
 #[tauri::command]
 pub async fn repurpose_content(
     app: AppHandle,
@@ -61,20 +130,7 @@ pub async fn repurpose_content(
         }
     };
 
-    let config = request.config.unwrap_or_default();
-
-    // Save content input
-    let content_input_id = uuid::Uuid::new_v4().to_string();
-    let word_count = request.content.split_whitespace().count() as u32;
-    let created_at = chrono::Utc::now().to_rfc3339();
-
-    {
-        let conn = db.conn.lock().await;
-        conn.execute(
-            "INSERT INTO content_inputs (id, source_url, raw_text, title, word_count, created_at) VALUES (?1, ?2, ?3, ?4, ?5, ?6)",
-            params![content_input_id, request.source_url, request.content, request.title, word_count, created_at],
-        )?;
-    }
+    let config = request.config.clone().unwrap_or_default();
 
     // Call Claude API
     let claude = app.state::<ClaudeApiClient>();
@@ -90,36 +146,117 @@ pub async fn repurpose_content(
         )
         .await?;
 
-    // Save outputs
-    let mut outputs = Vec::new();
-    {
-        let conn = db.conn.lock().await;
-        for (format, text) in &results {
-            let output_id = uuid::Uuid::new_v4().to_string();
-            let output_created_at = chrono::Utc::now().to_rfc3339();
-            let format_str = format.to_string();
+    let mut conn = db.conn.lock().await;
+    persist_successful_repurpose(&mut conn, &request, &results)
+}
 
-            conn.execute(
-                "INSERT INTO repurposed_outputs (id, content_input_id, format, output_text, created_at) VALUES (?1, ?2, ?3, ?4, ?5)",
-                params![output_id, content_input_id, format_str, text, output_created_at],
-            )?;
+#[cfg(test)]
+mod tests {
+    use super::persist_successful_repurpose;
+    use crate::db;
+    use crate::models::content::RepurposeRequest;
+    use crate::models::platform::{LengthPreset, OutputFormat, PlatformConfig, TonePreset};
 
-            outputs.push(RepurposedOutput {
-                id: output_id,
-                content_input_id: content_input_id.clone(),
-                format: format_str,
-                output_text: text.clone(),
-                created_at: output_created_at,
-            });
+    fn setup_connection() -> rusqlite::Connection {
+        let conn = rusqlite::Connection::open_in_memory().expect("open in-memory db");
+        db::run_migrations(&conn).expect("run migrations");
+        conn
+    }
+
+    fn sample_request() -> RepurposeRequest {
+        RepurposeRequest {
+            content: "This is source content with enough words to create a meaningful record."
+                .to_string(),
+            source_url: Some("https://example.com/post".to_string()),
+            title: Some("Example".to_string()),
+            formats: vec![OutputFormat::Summary, OutputFormat::Linkedin],
+            tone: TonePreset::Professional,
+            length: LengthPreset::Medium,
+            voice_id: None,
+            config: Some(PlatformConfig::default()),
         }
     }
 
-    // Record usage
-    let format_count = results.len() as u32;
-    usage_tracker::record_usage(&db, &content_input_id, format_count).await?;
+    fn sample_results() -> Vec<(OutputFormat, String)> {
+        vec![
+            (OutputFormat::Summary, "Summary output".to_string()),
+            (OutputFormat::Linkedin, "LinkedIn output".to_string()),
+        ]
+    }
 
-    Ok(RepurposeResponse {
-        content_input_id,
-        outputs,
-    })
+    #[test]
+    fn persists_content_outputs_and_usage_for_successful_generation() {
+        let mut conn = setup_connection();
+
+        let response = persist_successful_repurpose(&mut conn, &sample_request(), &sample_results())
+            .expect("persist successful generation");
+
+        assert_eq!(response.outputs.len(), 2);
+
+        let content_count: u32 = conn
+            .query_row("SELECT COUNT(*) FROM content_inputs", [], |row| row.get(0))
+            .expect("count content inputs");
+        let output_count: u32 = conn
+            .query_row("SELECT COUNT(*) FROM repurposed_outputs", [], |row| row.get(0))
+            .expect("count outputs");
+        let usage_total: u32 = conn
+            .query_row(
+                "SELECT COALESCE(SUM(format_count), 0) FROM usage_records",
+                [],
+                |row| row.get(0),
+            )
+            .expect("count usage");
+
+        assert_eq!(content_count, 1);
+        assert_eq!(output_count, 2);
+        assert_eq!(usage_total, 2);
+    }
+
+    #[test]
+    fn rejects_empty_results_without_creating_history_records() {
+        let mut conn = setup_connection();
+
+        let error = persist_successful_repurpose(&mut conn, &sample_request(), &[])
+            .expect_err("empty results should fail");
+
+        assert!(
+            error.to_string().contains("Claude returned no outputs"),
+            "empty generations should raise a clear error"
+        );
+
+        let content_count: u32 = conn
+            .query_row("SELECT COUNT(*) FROM content_inputs", [], |row| row.get(0))
+            .expect("count content inputs");
+        let output_count: u32 = conn
+            .query_row("SELECT COUNT(*) FROM repurposed_outputs", [], |row| row.get(0))
+            .expect("count outputs");
+
+        assert_eq!(content_count, 0);
+        assert_eq!(output_count, 0);
+    }
+
+    #[test]
+    fn rolls_back_partial_records_when_usage_persistence_fails() {
+        let mut conn = setup_connection();
+        conn.execute("DROP TABLE usage_records", [])
+            .expect("drop usage_records");
+
+        let error = persist_successful_repurpose(&mut conn, &sample_request(), &sample_results())
+            .expect_err("usage insert failure should bubble up");
+
+        assert!(
+            error.to_string().contains("no such table: usage_records"),
+            "failing writes should report the underlying database issue"
+        );
+
+        let content_count: u32 = conn
+            .query_row("SELECT COUNT(*) FROM content_inputs", [], |row| row.get(0))
+            .expect("count content inputs");
+        let output_count: u32 = conn
+            .query_row("SELECT COUNT(*) FROM repurposed_outputs", [], |row| row.get(0))
+            .expect("count outputs");
+
+        assert_eq!(content_count, 0);
+        assert_eq!(output_count, 0);
+    }
 }

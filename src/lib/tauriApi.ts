@@ -18,7 +18,11 @@ interface AnalyzeVoiceRequest {
 
 export const api = {
   saveContent: (params: { text: string; source_url?: string; title?: string }) =>
-    invoke<ContentInput>('save_content', params),
+    invoke<ContentInput>('save_content', {
+      text: params.text,
+      sourceUrl: params.source_url,
+      title: params.title,
+    }),
 
   fetchUrl: (url: string) => invoke<FetchedContent>('fetch_url', { url }),
 
@@ -35,18 +39,17 @@ export const api = {
   setDefaultVoice: (id: string) => invoke<void>('set_default_voice', { id }),
 
   getHistory: (page?: number, pageSize?: number) =>
-    invoke<HistoryPage>('get_history', { page, page_size: pageSize }),
+    invoke<HistoryPage>('get_history', { page, pageSize }),
 
   getHistoryDetail: (id: string) => invoke<HistoryDetail>('get_history_detail', { id }),
 
   deleteHistoryItem: (id: string) => invoke<void>('delete_history_item', { id }),
 
-  exportPdf: (contentInputId: string) =>
-    invoke<string>('export_pdf', { content_input_id: contentInputId }),
+  exportPdf: (contentInputId: string) => invoke<string>('export_pdf', { contentInputId }),
 
   getUsageInfo: () => invoke<UsageInfo>('get_usage_info'),
 
   getApiKey: () => invoke<string>('get_api_key'),
 
-  setApiKey: (apiKey: string) => invoke<void>('set_api_key', { api_key: apiKey }),
+  setApiKey: (apiKey: string) => invoke<void>('set_api_key', { apiKey }),
 };

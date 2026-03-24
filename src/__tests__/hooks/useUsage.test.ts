@@ -1,14 +1,19 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { renderHook, waitFor } from '@testing-library/react';
+import { renderHook, waitFor, act } from '@testing-library/react';
 import { useUsage } from '../../hooks/useUsage';
 import { api } from '../../lib/tauriApi';
 import { mockTauriResponses } from '../mocks/tauriApi.mock';
 
 vi.mock('../../lib/tauriApi');
 
+async function flushMicrotasks() {
+  await Promise.resolve();
+}
+
 describe('useUsage', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    vi.useRealTimers();
   });
 
   describe('loadUsage', () => {
@@ -97,52 +102,56 @@ describe('useUsage', () => {
   });
 
   describe('auto-refresh', () => {
-    it.skip('refreshes usage every 30 seconds', async () => {
+    it('refreshes usage every 30 seconds', async () => {
       vi.useFakeTimers();
 
-      const initialUsage = mockTauriResponses.usageInfo({
-        used: 10,
-      });
-      const updatedUsage = mockTauriResponses.usageInfo({
-        used: 15,
-      });
+      try {
+        const initialUsage = mockTauriResponses.usageInfo({
+          used: 10,
+        });
+        const updatedUsage = mockTauriResponses.usageInfo({
+          used: 15,
+        });
 
-      vi.mocked(api.getUsageInfo)
-        .mockResolvedValueOnce(initialUsage)
-        .mockResolvedValueOnce(updatedUsage);
+        vi.mocked(api.getUsageInfo)
+          .mockResolvedValueOnce(initialUsage)
+          .mockResolvedValueOnce(updatedUsage);
 
-      const { result } = renderHook(() => useUsage());
+        const { result } = renderHook(() => useUsage());
 
-      await vi.runOnlyPendingTimersAsync();
-
-      await waitFor(() => {
+        await act(async () => {
+          await flushMicrotasks();
+        });
         expect(result.current.usage?.used).toBe(10);
-      });
 
-      await vi.advanceTimersByTimeAsync(30000);
+        await act(async () => {
+          await vi.advanceTimersByTimeAsync(30000);
+          await flushMicrotasks();
+        });
 
-      await waitFor(() => {
         expect(result.current.usage?.used).toBe(15);
-      });
 
-      expect(api.getUsageInfo).toHaveBeenCalledTimes(2);
-
-      vi.useRealTimers();
-    }, 10000);
+        expect(api.getUsageInfo).toHaveBeenCalledTimes(2);
+      } finally {
+        vi.useRealTimers();
+      }
+    });
 
     it('cleans up interval on unmount', () => {
       vi.useFakeTimers();
       const clearIntervalSpy = vi.spyOn(globalThis, 'clearInterval');
 
-      vi.mocked(api.getUsageInfo).mockResolvedValue(mockTauriResponses.usageInfo());
+      try {
+        vi.mocked(api.getUsageInfo).mockResolvedValue(mockTauriResponses.usageInfo());
 
-      const { unmount } = renderHook(() => useUsage());
+        const { unmount } = renderHook(() => useUsage());
 
-      unmount();
+        unmount();
 
-      expect(clearIntervalSpy).toHaveBeenCalled();
-
-      vi.useRealTimers();
+        expect(clearIntervalSpy).toHaveBeenCalled();
+      } finally {
+        vi.useRealTimers();
+      }
     });
   });
 
@@ -165,23 +174,26 @@ describe('useUsage', () => {
 
   describe('loading states', () => {
     it('sets isLoading during fetch', async () => {
+      vi.useFakeTimers();
       vi.mocked(api.getUsageInfo).mockImplementation(
         () =>
-          new Promise((resolve) =>
-            setTimeout(() => resolve(mockTauriResponses.usageInfo()), 100)
-          )
+          new Promise((resolve) => setTimeout(() => resolve(mockTauriResponses.usageInfo()), 100))
       );
 
-      const { result } = renderHook(() => useUsage());
+      try {
+        const { result } = renderHook(() => useUsage());
 
-      expect(result.current.isLoading).toBe(true);
+        expect(result.current.isLoading).toBe(true);
 
-      await waitFor(
-        () => {
-          expect(result.current.isLoading).toBe(false);
-        },
-        { timeout: 200 }
-      );
+        await act(async () => {
+          await vi.advanceTimersByTimeAsync(100);
+          await flushMicrotasks();
+        });
+
+        expect(result.current.isLoading).toBe(false);
+      } finally {
+        vi.useRealTimers();
+      }
     });
 
     it('sets isLoading false even on error', async () => {
