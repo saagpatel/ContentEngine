@@ -79,7 +79,7 @@
     "vite": "^7.0.4",
     "vitest": "^4.0.18",
     "@commitlint/cli": "^19.8.1",
-    "@commitlint/config-conventional": "^19.8.1",
+    "@commitlint/config-conventional": "^20.5.0",
     "@commitlint/cz-commitlint": "^19.8.1",
     "@lhci/cli": "^0.15.1",
     "commitizen": "^4.3.1",
