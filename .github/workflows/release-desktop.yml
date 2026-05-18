@@ -93,7 +93,7 @@ jobs:
         run: scripts/release/collect-artifacts.sh release-artifacts
 
       - name: Upload release artifacts
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: release-artifacts-${{ matrix.os }}
           path: release-artifacts/
