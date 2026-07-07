@@ -59,7 +59,7 @@
   },
   "devDependencies": {
     "@commitlint/cli": "^20.5.0",
-    "@commitlint/config-conventional": "^20.5.0",
+    "@commitlint/config-conventional": "^21.2.0",
     "@commitlint/cz-commitlint": "^21.2.0",
     "@lhci/cli": "^0.15.1",
     "@tailwindcss/vite": "^4.3.2",
